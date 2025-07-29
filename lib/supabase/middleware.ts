@@ -47,13 +47,19 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  // Check if user has a guest session cookie
+  const hasGuestSession = request.cookies.get("guest_session")?.value;
+
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
+    !hasGuestSession &&
     !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !request.nextUrl.pathname.startsWith("/auth") &&
+    !request.nextUrl.pathname.startsWith("/pricing") &&
+    !request.nextUrl.pathname.startsWith("/payment-success")
   ) {
-    // no user, potentially respond by redirecting the user to the login page
+    // no user or guest session, redirect to login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

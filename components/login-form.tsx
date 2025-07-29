@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useGuest } from "@/contexts/guest-context";
+import { UserCheck } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -25,7 +27,9 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const router = useRouter();
+  const { startGuestSession } = useGuest();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +48,18 @@ export function LoginForm({
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    try {
+      startGuestSession();
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error starting guest session:", error);
+    } finally {
+      setIsGuestLoading(false);
     }
   };
 
@@ -96,6 +112,29 @@ export function LoginForm({
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
             </div>
+            
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or
+                </span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isGuestLoading}
+              onClick={handleGuestLogin}
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              {isGuestLoading ? "Starting..." : "Continue as Guest"}
+            </Button>
+
             <div className="mt-4 text-center text-sm">
               New to romance writing?{" "}
               <Link

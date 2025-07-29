@@ -1,32 +1,112 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { StoryGrid } from "@/components/story-grid";
 import { CreateStoryButton } from "@/components/create-story-button";
-import { Heart, BookOpen, Users } from "lucide-react";
+import { Heart, BookOpen, Users, Crown } from "lucide-react";
 import { BuyCreditsCta } from "@/components/buy-credits-cta";
+import { useGuest } from "@/contexts/guest-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
-export default async function DashboardPage() {
-	const supabase = await createClient();
+// Placeholder data for guests
+const guestStories = [
+	{
+		id: "demo-1",
+		title: "Love in the Vineyard",
+		genre: "Contemporary",
+		createdAt: "2024-01-15",
+		excerpt:
+			"Sarah never expected to find love while managing her family's struggling vineyard...",
+		isPublic: false,
+		characters: ["Sarah", "Marco"],
+		isDemo: true,
+	},
+	{
+		id: "demo-2",
+		title: "The Duke's Secret",
+		genre: "Historical",
+		createdAt: "2024-01-10",
+		excerpt:
+			"In Regency London, Lady Catherine discovers that the mysterious Duke harbors a secret that could change everything...",
+		isPublic: true,
+		characters: ["Lady Catherine", "Duke Alexander"],
+		isDemo: true,
+	},
+];
 
-	const { data, error } = await supabase.auth.getClaims();
-	if (error || !data?.claims) {
-		redirect("/auth/login");
+const guestSharedStories = [
+	{
+		id: "demo-3",
+		title: "Midnight in Paris",
+		genre: "Contemporary",
+		author: "Emma Wilson",
+		sharedAt: "2024-01-12",
+		excerpt:
+			"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
+		characters: ["Sophie", "Jean-Luc"],
+		isDemo: true,
+	},
+];
+
+export default function DashboardPage() {
+	const { guestSession, isGuest } = useGuest();
+	const [user, setUser] = useState<any>(null);
+	const [profile, setProfile] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		async function loadUserData() {
+			if (isGuest) {
+				setLoading(false);
+				return;
+			}
+
+			const supabase = createClient();
+			const { data, error } = await supabase.auth.getClaims();
+			
+			if (error || !data?.claims) {
+				window.location.href = "/auth/login";
+				return;
+			}
+
+			const { data: { user: userData } } = await supabase.auth.getUser();
+			
+			if (!userData) {
+				window.location.href = "/auth/login";
+				return;
+			}
+
+			const { data: profileData } = await supabase
+				.from("profiles")
+				.select("*")
+				.eq("user_id", userData.id)
+				.single();
+
+			setUser(userData);
+			setProfile(profileData);
+			setLoading(false);
+		}
+
+		loadUserData();
+	}, [isGuest]);
+
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+					<p className="text-muted-foreground">Loading your dashboard...</p>
+				</div>
+			</div>
+		);
 	}
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
 
-	if (!user) {
-		return null;
-	}
-
-	const { data: profile } = await supabase
-		.from("profiles")
-		.select("*")
-		.eq("user_id", user.id)
-		.single();
-	const userStories = [
+	const userStories = isGuest ? guestStories : [
 		{
 			id: "1",
 			title: "Love in the Vineyard",
@@ -49,7 +129,7 @@ export default async function DashboardPage() {
 		},
 	];
 
-	const sharedStories = [
+	const sharedStories = isGuest ? guestSharedStories : [
 		{
 			id: "3",
 			title: "Midnight in Paris",
@@ -62,20 +142,83 @@ export default async function DashboardPage() {
 		},
 	];
 
+	const creditsRemaining = isGuest 
+		? guestSession?.user.creditsRemaining || 0 
+		: profile?.credits_remaining || 0;
+
+	const displayName = isGuest 
+		? guestSession?.user.displayName || "Guest Writer"
+		: profile?.display_name || "Writer";
+
 	return (
 		<div className="min-h-screen bg-romantic-gradient">
 			<DashboardHeader />
 
 			<main className="container mx-auto px-4 py-8">
+				{isGuest && (
+					<Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+						<CardHeader>
+							<div className="flex items-center gap-2">
+								<Crown className="h-5 w-5 text-primary" />
+								<CardTitle className="text-lg">Welcome, Guest Writer!</CardTitle>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-muted-foreground mb-4">
+								You&apos;re experiencing Romance by Me in guest mode. Sign up to save your stories, get more credits, and unlock all features!
+							</p>
+							<div className="flex flex-col sm:flex-row gap-3">
+								<Button asChild>
+									<Link href="/auth/sign-up">
+										<Crown className="mr-2 h-4 w-4" />
+										Create Account
+									</Link>
+								</Button>
+								<Button variant="outline" asChild>
+									<Link href="/auth/login">
+										Sign In
+									</Link>
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
 				<div className="mb-8">
 					<h1 className="text-4xl font-heading text-foreground mb-2">
-						Welcome back, writer
+						Welcome back, {displayName}
 					</h1>
 					<p className="text-muted-foreground text-lg">
 						Ready to craft your next romantic tale?
 					</p>
 				</div>
-				<BuyCreditsCta creditsRemaining={profile?.credits_remaining || 0} />
+				
+				{isGuest ? (
+					<Card className="mb-8">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Crown className="h-5 w-5 text-primary" />
+								Guest Trial Credit
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="flex items-center justify-between mb-4">
+								<div>
+									<p className="text-3xl font-bold text-primary">{creditsRemaining} credit remaining</p>
+									<p className="text-sm text-muted-foreground">Try creating your first story for free!</p>
+								</div>
+							</div>
+							<Button asChild className="w-full">
+								<Link href="/auth/sign-up">
+									<Crown className="mr-2 h-4 w-4" />
+									Sign Up for More Credits
+								</Link>
+							</Button>
+						</CardContent>
+					</Card>
+				) : (
+					<BuyCreditsCta creditsRemaining={creditsRemaining} />
+				)}
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 					<div className="bg-card/60 backdrop-blur-sm rounded-lg p-6 border">

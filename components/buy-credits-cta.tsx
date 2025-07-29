@@ -1,16 +1,52 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Coins } from "lucide-react";
+import { useState } from "react";
 
-export async function BuyCreditsCta({
+export function BuyCreditsCta({
 	creditsRemaining,
 }: {
 	creditsRemaining: number;
 }) {
+	const [isLoading, setIsLoading] = useState(false);
+
+	const handleBuyCredits = async () => {
+		setIsLoading(true);
+		
+		try {
+			const response = await fetch("/api/stripe/create-checkout-session", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: 25, // Default to small bundle
+					credits: 3,
+					planName: "SMALL BUNDLE",
+				}),
+			});
+
+			const { url, error } = await response.json();
+
+			if (error) {
+				console.error("Error creating checkout session:", error);
+				setIsLoading(false);
+				return;
+			}
+
+			// Redirect to Stripe Checkout
+			window.location.href = url;
+		} catch (error) {
+			console.error("Error:", error);
+			setIsLoading(false);
+		}
+	};
+
 	return (
-		<Link href="/pricing" className="block">
-			<Card className="group relative overflow-hidden border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+		<>
+			<Card className="group relative overflow-hidden border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer" onClick={handleBuyCredits}>
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
 				<CardHeader className="relative pb-3">
@@ -40,13 +76,15 @@ export async function BuyCreditsCta({
 						<Button
 							className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
 							variant="outline"
+							onClick={handleBuyCredits}
+							disabled={isLoading}
 						>
 							<Coins className="h-4 w-4 mr-2" />
-							Buy Credits Now
+							{isLoading ? "Loading..." : "Buy Credits Now"}
 						</Button>
 					</div>
 				</CardContent>
 			</Card>
-		</Link>
+		</>
 	);
 }

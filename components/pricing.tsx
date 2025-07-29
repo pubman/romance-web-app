@@ -7,7 +7,6 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check, Star } from "lucide-react";
-import Link from "next/link";
 import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
@@ -22,6 +21,7 @@ interface PricingPlan {
 	buttonText: string;
 	href: string;
 	isPopular: boolean;
+	credits?: number;
 }
 
 interface PricingProps {
@@ -40,6 +40,7 @@ export function Pricing({
 	const [isMonthly, setIsMonthly] = useState(true);
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const switchRef = useRef<HTMLButtonElement>(null);
+	const [isLoading, setIsLoading] = useState<string | null>(null);
 
 	const handleToggle = (checked: boolean) => {
 		setIsMonthly(!checked);
@@ -67,6 +68,38 @@ export function Pricing({
 				startVelocity: 30,
 				shapes: ["circle"],
 			});
+		}
+	};
+
+	const handlePurchase = async (plan: PricingPlan) => {
+		setIsLoading(plan.name);
+		
+		try {
+			const response = await fetch("/api/stripe/create-checkout-session", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: parseInt(isMonthly ? plan.price : plan.yearlyPrice),
+					credits: plan.credits || 1,
+					planName: plan.name,
+				}),
+			});
+
+			const { url, error } = await response.json();
+
+			if (error) {
+				console.error("Error creating checkout session:", error);
+				setIsLoading(null);
+				return;
+			}
+
+			// Redirect to Stripe Checkout
+			window.location.href = url;
+		} catch (error) {
+			console.error("Error:", error);
+			setIsLoading(null);
 		}
 	};
 
@@ -192,8 +225,9 @@ export function Pricing({
 
 							<hr className="w-full my-4" />
 
-							<Link
-								href={plan.href}
+							<button
+								onClick={() => handlePurchase(plan)}
+								disabled={isLoading !== null}
 								className={cn(
 									buttonVariants({
 										variant: "outline",
@@ -202,11 +236,12 @@ export function Pricing({
 									"transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-primary-foreground",
 									plan.isPopular
 										? "bg-primary text-primary-foreground"
-										: "bg-background text-foreground"
+										: "bg-background text-foreground",
+									isLoading !== null && "opacity-50 cursor-not-allowed"
 								)}
 							>
-								{plan.buttonText}
-							</Link>
+								{isLoading === plan.name ? "Loading..." : plan.buttonText}
+							</button>
 							<p className="mt-6 text-xs leading-5 text-muted-foreground">
 								{plan.description}
 							</p>
