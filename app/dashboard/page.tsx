@@ -13,7 +13,19 @@ export default async function DashboardPage() {
 	if (error || !data?.claims) {
 		redirect("/auth/login");
 	}
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
+	if (!user) {
+		return null;
+	}
+
+	const { data: profile } = await supabase
+		.from("profiles")
+		.select("*")
+		.eq("user_id", user.id)
+		.single();
 	const userStories = [
 		{
 			id: "1",
@@ -63,7 +75,7 @@ export default async function DashboardPage() {
 						Ready to craft your next romantic tale?
 					</p>
 				</div>
-				<BuyCreditsCta />
+				<BuyCreditsCta creditsRemaining={profile?.credits_remaining || 0} />
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 					<div className="bg-card/60 backdrop-blur-sm rounded-lg p-6 border">
