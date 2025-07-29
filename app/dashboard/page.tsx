@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { StoryGrid } from "@/components/story-grid";
 import { CreateStoryButton } from "@/components/create-story-button";
+import { CurrentlyReading } from "@/components/currently-reading";
+import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { Heart, BookOpen, Users, Crown } from "lucide-react";
 import { BuyCreditsCta } from "@/components/buy-credits-cta";
 import { useGuest } from "@/contexts/guest-context";
@@ -58,6 +60,9 @@ export default function DashboardPage() {
 	const [user, setUser] = useState<any>(null);
 	const [profile, setProfile] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
+	
+	// Get reading progress count for the stat card
+	const { readingProgress } = useReadingProgress(user?.id);
 
 	useEffect(() => {
 		async function loadUserData() {
@@ -255,9 +260,18 @@ export default function DashboardPage() {
 							<BookOpen className="h-5 w-5 text-primary" />
 							<h3 className="font-semibold">Reading</h3>
 						</div>
-						<p className="text-2xl font-heading text-primary">3</p>
+						<p className="text-2xl font-heading text-primary">
+							{isAuthenticated ? readingProgress.length : 0}
+						</p>
 						<p className="text-sm text-muted-foreground">Stories in progress</p>
 					</div>
+				</div>
+
+				<div className="mb-12">
+					<CurrentlyReading 
+						userId={isAuthenticated ? user?.id : undefined} 
+						isGuest={isGuest && !isAuthenticated}
+					/>
 				</div>
 
 				<div className="flex items-center justify-between mb-6">
