@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { UserSearch } from "@/components/user-search";
 
 interface StoryDetailsProps {
   story: {
@@ -44,10 +45,17 @@ interface StoryDetailsProps {
   };
 }
 
+interface SharedUser {
+  user_id: string;
+  display_name: string;
+  avatar_url?: string;
+}
+
 export function StoryDetails({ story }: StoryDetailsProps) {
-  const [shareEmail, setShareEmail] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<SharedUser[]>([]);
   const [isCopied, setIsCopied] = useState(false);
   const [isPublic, setIsPublic] = useState(story.isPublic);
+  const [isSharing, setIsSharing] = useState(false);
 
   const shareUrl = `${window.location.origin}/story/${story.id}`;
 
@@ -61,10 +69,46 @@ export function StoryDetails({ story }: StoryDetailsProps) {
     }
   };
 
-  const handleShareWithUser = () => {
-    // In a real app, this would send the share invitation
-    console.log("Sharing with:", shareEmail);
-    setShareEmail("");
+  const handleUserSelect = (user: SharedUser) => {
+    setSelectedUsers(prev => [...prev, user]);
+  };
+
+  const handleUserRemove = (userId: string) => {
+    setSelectedUsers(prev => prev.filter(user => user.user_id !== userId));
+  };
+
+  const handleShareWithUsers = async () => {
+    if (selectedUsers.length === 0) return;
+
+    setIsSharing(true);
+    try {
+      const response = await fetch(`/api/stories/${story.id}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userIds: selectedUsers.map(user => user.user_id)
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to share story');
+      }
+
+      // Clear selected users after successful share
+      setSelectedUsers([]);
+      
+      console.log("Story shared successfully!", data);
+      // You could show a success toast here with the message: data.message
+    } catch (error) {
+      console.error("Failed to share story:", error);
+      // You could show an error toast here
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const togglePublic = () => {
@@ -185,21 +229,25 @@ export function StoryDetails({ story }: StoryDetailsProps) {
                             </Button>
                           </div>
                           
-                          <div className="space-y-2">
-                            <Label htmlFor="share-email">Share with specific person</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                id="share-email"
-                                type="email"
-                                placeholder="Enter email address"
-                                value={shareEmail}
-                                onChange={(e) => setShareEmail(e.target.value)}
-                              />
-                              <Button onClick={handleShareWithUser}>
+                          <div className="space-y-4">
+                            <UserSearch
+                              onUserSelect={handleUserSelect}
+                              selectedUsers={selectedUsers}
+                              onUserRemove={handleUserRemove}
+                              maxSelections={5}
+                              placeholder="Search users by name..."
+                            />
+                            
+                            {selectedUsers.length > 0 && (
+                              <Button 
+                                onClick={handleShareWithUsers}
+                                disabled={isSharing}
+                                className="w-full"
+                              >
                                 <Users className="mr-2 h-4 w-4" />
-                                Share
+                                {isSharing ? "Sharing..." : `Share with ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`}
                               </Button>
-                            </div>
+                            )}
                           </div>
                         </div>
                       </DialogContent>
