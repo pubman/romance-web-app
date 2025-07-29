@@ -44,7 +44,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;
@@ -59,9 +59,15 @@ export function SignUpForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2">
+            <h1 className="text-3xl font-heading text-primary">RomanceByMe</h1>
+            <p className="text-sm text-muted-foreground mt-1">Create your perfect love story</p>
+          </div>
+          <CardTitle className="text-2xl font-heading">Begin Your Journey</CardTitle>
+          <CardDescription>
+            Join thousands of romance writers crafting their dream stories
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp}>
@@ -103,13 +109,13 @@ export function SignUpForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
+                {isLoading ? "Creating your writer profile..." : "Start Writing"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
+              Already crafting stories?{" "}
+              <Link href="/auth/login" className="text-primary hover:text-primary/80 underline underline-offset-4">
+                Sign in
               </Link>
             </div>
           </form>

@@ -39,8 +39,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
+      router.push("/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -51,10 +50,14 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2">
+            <h1 className="text-3xl font-heading text-primary">RomanceByMe</h1>
+            <p className="text-sm text-muted-foreground mt-1">Create your perfect love story</p>
+          </div>
+          <CardTitle className="text-2xl font-heading">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Sign in to continue crafting your romantic tales
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,12 +97,12 @@ export function LoginForm({
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              New to romance writing?{" "}
               <Link
                 href="/auth/sign-up"
-                className="underline underline-offset-4"
+                className="text-primary hover:text-primary/80 underline underline-offset-4"
               >
-                Sign up
+                Start your journey
               </Link>
             </div>
           </form>
