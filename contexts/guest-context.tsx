@@ -8,6 +8,7 @@ import {
 	clearGuestSession,
 	updateGuestCredits,
 } from "@/lib/guest-session";
+import { createClient } from "@/lib/supabase/client";
 
 interface GuestContextType {
 	guestSession: GuestSession | null;
@@ -29,7 +30,27 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
 		if (existingSession) {
 			setGuestSession(existingSession);
 		}
-	}, []);
+	}, []); // Only run on mount
+
+	useEffect(() => {
+		const supabase = createClient();
+
+		// Listen for auth state changes to clear guest session when user signs in
+		const { data: { subscription } } = supabase.auth.onAuthStateChange(
+			async (event, session) => {
+				if (session?.user) {
+					// User has signed in, clear any guest session
+					const currentGuestSession = getGuestSession();
+					if (currentGuestSession) {
+						clearGuestSession();
+						setGuestSession(null);
+					}
+				}
+			}
+		);
+
+		return () => subscription.unsubscribe();
+	}, []); // Only set up listener once
 
 	const startGuestSession = () => {
 		const session = createGuestSession();

@@ -61,35 +61,37 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		async function loadUserData() {
+			const supabase = createClient();
+			
+			// First, check for real authentication
+			const { data, error } = await supabase.auth.getClaims();
+			
+			if (!error && data?.claims) {
+				// User is authenticated, get user data
+				const { data: { user: userData } } = await supabase.auth.getUser();
+				
+				if (userData) {
+					const { data: profileData } = await supabase
+						.from("profiles")
+						.select("*")
+						.eq("user_id", userData.id)
+						.single();
+
+					setUser(userData);
+					setProfile(profileData);
+					setLoading(false);
+					return;
+				}
+			}
+
+			// If no real authentication, check for guest mode
 			if (isGuest) {
 				setLoading(false);
 				return;
 			}
 
-			const supabase = createClient();
-			const { data, error } = await supabase.auth.getClaims();
-			
-			if (error || !data?.claims) {
-				window.location.href = "/auth/login";
-				return;
-			}
-
-			const { data: { user: userData } } = await supabase.auth.getUser();
-			
-			if (!userData) {
-				window.location.href = "/auth/login";
-				return;
-			}
-
-			const { data: profileData } = await supabase
-				.from("profiles")
-				.select("*")
-				.eq("user_id", userData.id)
-				.single();
-
-			setUser(userData);
-			setProfile(profileData);
-			setLoading(false);
+			// No auth and no guest session, redirect to login
+			window.location.href = "/auth/login";
 		}
 
 		loadUserData();
@@ -106,7 +108,10 @@ export default function DashboardPage() {
 		);
 	}
 
-	const userStories = isGuest ? guestStories : [
+	// Determine if we're in authenticated mode or guest mode
+	const isAuthenticated = user && profile;
+
+	const userStories = isAuthenticated ? [
 		{
 			id: "1",
 			title: "Love in the Vineyard",
@@ -127,9 +132,9 @@ export default function DashboardPage() {
 			isPublic: true,
 			characters: ["Lady Catherine", "Duke Alexander"],
 		},
-	];
+	] : guestStories;
 
-	const sharedStories = isGuest ? guestSharedStories : [
+	const sharedStories = isAuthenticated ? [
 		{
 			id: "3",
 			title: "Midnight in Paris",
@@ -140,22 +145,22 @@ export default function DashboardPage() {
 				"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
 			characters: ["Sophie", "Jean-Luc"],
 		},
-	];
+	] : guestSharedStories;
+	
+	const creditsRemaining = isAuthenticated
+		? profile?.credits_remaining || 0
+		: guestSession?.user.creditsRemaining || 0;
 
-	const creditsRemaining = isGuest 
-		? guestSession?.user.creditsRemaining || 0 
-		: profile?.credits_remaining || 0;
-
-	const displayName = isGuest 
-		? guestSession?.user.displayName || "Guest Writer"
-		: profile?.display_name || "Writer";
+	const displayName = isAuthenticated
+		? profile?.display_name || "Writer"
+		: guestSession?.user.displayName || "Guest Writer";
 
 	return (
 		<div className="min-h-screen bg-romantic-gradient">
 			<DashboardHeader />
 
 			<main className="container mx-auto px-4 py-8">
-				{isGuest && (
+				{!isAuthenticated && isGuest && (
 					<Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
 						<CardHeader>
 							<div className="flex items-center gap-2">
@@ -193,7 +198,7 @@ export default function DashboardPage() {
 					</p>
 				</div>
 				
-				{isGuest ? (
+				{!isAuthenticated && isGuest ? (
 					<Card className="mb-8">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">

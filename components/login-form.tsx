@@ -29,7 +29,7 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const router = useRouter();
-  const { startGuestSession } = useGuest();
+  const { startGuestSession, endGuestSession } = useGuest();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +43,10 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
+      
+      // Clear any existing guest session since user is now authenticated
+      endGuestSession();
+      
       router.push("/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
