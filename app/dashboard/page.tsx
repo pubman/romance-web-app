@@ -9,7 +9,14 @@ import { CreateStoryButton } from "@/components/create-story-button";
 import { CurrentlyReading } from "@/components/currently-reading";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useUserStories } from "@/hooks/use-user-stories";
-import { Heart, BookOpen, Users, Crown, RefreshCw, AlertCircle } from "lucide-react";
+import {
+	Heart,
+	BookOpen,
+	Users,
+	Crown,
+	RefreshCw,
+	AlertCircle,
+} from "lucide-react";
 import { BuyCreditsCta } from "@/components/buy-credits-cta";
 import { useGuest } from "@/contexts/guest-context";
 import { Button } from "@/components/ui/button";
@@ -61,24 +68,31 @@ export default function DashboardPage() {
 	const [user, setUser] = useState<any>(null);
 	const [profile, setProfile] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
-	
+
 	// Get reading progress count for the stat card
 	const { readingProgress } = useReadingProgress(user?.id);
-	
+
 	// Get user stories from database
-	const { stories: userStories, loading: storiesLoading, error: storiesError, refetch: refetchStories } = useUserStories(user?.id);
+	const {
+		stories: userStories,
+		loading: storiesLoading,
+		error: storiesError,
+		refetch: refetchStories,
+	} = useUserStories(user?.id);
 
 	useEffect(() => {
 		async function loadUserData() {
 			const supabase = createClient();
-			
+
 			// First, check for real authentication
 			const { data, error } = await supabase.auth.getClaims();
-			
+
 			if (!error && data?.claims) {
 				// User is authenticated, get user data
-				const { data: { user: userData } } = await supabase.auth.getUser();
-				
+				const {
+					data: { user: userData },
+				} = await supabase.auth.getUser();
+
 				if (userData) {
 					const { data: profileData } = await supabase
 						.from("profiles")
@@ -123,19 +137,21 @@ export default function DashboardPage() {
 	// Use guest stories for guest mode, database stories for authenticated users
 	const displayStories = isAuthenticated ? userStories : guestStories;
 
-	const sharedStories = isAuthenticated ? [
-		{
-			id: "3",
-			title: "Midnight in Paris",
-			genre: "Contemporary",
-			author: "Emma Wilson",
-			sharedAt: "2024-01-12",
-			excerpt:
-				"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
-			characters: ["Sophie", "Jean-Luc"],
-		},
-	] : guestSharedStories;
-	
+	const sharedStories = isAuthenticated
+		? [
+				{
+					id: "3",
+					title: "Midnight in Paris",
+					genre: "Contemporary",
+					author: "Emma Wilson",
+					sharedAt: "2024-01-12",
+					excerpt:
+						"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
+					characters: ["Sophie", "Jean-Luc"],
+				},
+		  ]
+		: guestSharedStories;
+
 	const creditsRemaining = isAuthenticated
 		? profile?.credits_remaining || 0
 		: guestSession?.user.creditsRemaining || 0;
@@ -154,12 +170,15 @@ export default function DashboardPage() {
 						<CardHeader>
 							<div className="flex items-center gap-2">
 								<Crown className="h-5 w-5 text-primary" />
-								<CardTitle className="text-lg">Welcome, Guest Writer!</CardTitle>
+								<CardTitle className="text-lg">
+									Welcome, Guest Writer!
+								</CardTitle>
 							</div>
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-muted-foreground mb-4">
-								You&apos;re experiencing Romance by Me in guest mode. Sign up to save your stories, get more credits, and unlock all features!
+								You&apos;re experiencing Romance by Me in guest mode. Sign up to
+								save your stories, get more credits, and unlock all features!
 							</p>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<Button asChild>
@@ -169,9 +188,7 @@ export default function DashboardPage() {
 									</Link>
 								</Button>
 								<Button variant="outline" asChild>
-									<Link href="/auth/login">
-										Sign In
-									</Link>
+									<Link href="/auth/login">Sign In</Link>
 								</Button>
 							</div>
 						</CardContent>
@@ -186,7 +203,7 @@ export default function DashboardPage() {
 						Ready to craft your next romantic tale?
 					</p>
 				</div>
-				
+
 				{!isAuthenticated && isGuest ? (
 					<Card className="mb-8">
 						<CardHeader>
@@ -198,8 +215,12 @@ export default function DashboardPage() {
 						<CardContent>
 							<div className="flex items-center justify-between mb-4">
 								<div>
-									<p className="text-3xl font-bold text-primary">{creditsRemaining} credit remaining</p>
-									<p className="text-sm text-muted-foreground">Try creating your first story for free!</p>
+									<p className="text-3xl font-bold text-primary">
+										{creditsRemaining} credit remaining
+									</p>
+									<p className="text-sm text-muted-foreground">
+										Try creating your first story for free!
+									</p>
 								</div>
 							</div>
 							<Button asChild className="w-full">
@@ -251,12 +272,14 @@ export default function DashboardPage() {
 					</div>
 				</div>
 
-				<div className="mb-12">
+				{/*
+        // TODO: Add back in when we want to show the currently reading stories
+        <div className="mb-12">
 					<CurrentlyReading 
 						userId={isAuthenticated ? user?.id : undefined} 
 						isGuest={isGuest && !isAuthenticated}
 					/>
-				</div>
+				</div> */}
 
 				<div className="flex items-center justify-between mb-6">
 					<h2 className="text-2xl font-heading">Your Stories</h2>
@@ -308,9 +331,7 @@ export default function DashboardPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="text-center space-y-4">
-							<p className="text-sm text-muted-foreground">
-								{storiesError}
-							</p>
+							<p className="text-sm text-muted-foreground">{storiesError}</p>
 							<Button onClick={refetchStories} variant="outline" size="sm">
 								<RefreshCw className="mr-2 h-4 w-4" />
 								Try Again

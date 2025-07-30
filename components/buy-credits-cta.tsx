@@ -14,7 +14,7 @@ export function BuyCreditsCta({
 
 	const handleBuyCredits = async () => {
 		setIsLoading(true);
-		
+
 		try {
 			const response = await fetch("/api/stripe/create-checkout-session", {
 				method: "POST",
@@ -45,8 +45,11 @@ export function BuyCreditsCta({
 	};
 
 	return (
-		<>
-			<Card className="group relative overflow-hidden border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer" onClick={handleBuyCredits}>
+		<div className="mb-8">
+			<Card
+				className="group relative overflow-hidden border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+				onClick={handleBuyCredits}
+			>
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
 				<CardHeader className="relative pb-3">
@@ -85,6 +88,6 @@ export function BuyCreditsCta({
 					</div>
 				</CardContent>
 			</Card>
-		</>
+		</div>
 	);
 }
