@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useStoryGeneration } from "@/hooks/use-story-generation";
 
 import { GenreStep } from "@/components/wizard-steps/genre-step";
 import { CharacterStep } from "@/components/wizard-steps/character-step";
@@ -44,8 +45,8 @@ const steps = [
 
 export function StoryWizard() {
   const router = useRouter();
+  const { generateStory, isGenerating, error } = useStoryGeneration();
   const [currentStep, setCurrentStep] = useState(1);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [preferences, setPreferences] = useState<StoryPreferences>({
     genre: "",
     mood: "",
@@ -85,11 +86,20 @@ export function StoryWizard() {
   };
 
   const handleGenerate = async () => {
-    setIsGenerating(true);
-    // Simulate story generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    // Redirect to the generated story (mock ID)
-    router.push("/story/generated-story-123");
+    // Generate story title from character names
+    const title = `${preferences.characters.protagonist.name}'s Romance`;
+    
+    try {
+      const result = await generateStory(title, preferences);
+      
+      if (result) {
+        // Redirect to story status page to monitor generation
+        router.push(`/story-status/${result.story.id}`);
+      }
+    } catch (error) {
+      console.error('Story generation failed:', error);
+      // Error is handled by the hook
+    }
   };
 
   const canProceed = () => {
@@ -169,6 +179,12 @@ export function StoryWizard() {
           </div>
 
           {renderStep()}
+
+          {error && (
+            <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+            </div>
+          )}
 
           {currentStep < steps.length && (
             <div className="flex justify-between mt-8">
