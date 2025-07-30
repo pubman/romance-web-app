@@ -8,7 +8,8 @@ import { StoryGrid } from "@/components/story-grid";
 import { CreateStoryButton } from "@/components/create-story-button";
 import { CurrentlyReading } from "@/components/currently-reading";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
-import { Heart, BookOpen, Users, Crown } from "lucide-react";
+import { useUserStories } from "@/hooks/use-user-stories";
+import { Heart, BookOpen, Users, Crown, RefreshCw, AlertCircle } from "lucide-react";
 import { BuyCreditsCta } from "@/components/buy-credits-cta";
 import { useGuest } from "@/contexts/guest-context";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,9 @@ export default function DashboardPage() {
 	
 	// Get reading progress count for the stat card
 	const { readingProgress } = useReadingProgress(user?.id);
+	
+	// Get user stories from database
+	const { stories: userStories, loading: storiesLoading, error: storiesError, refetch: refetchStories } = useUserStories(user?.id);
 
 	useEffect(() => {
 		async function loadUserData() {
@@ -116,28 +120,8 @@ export default function DashboardPage() {
 	// Determine if we're in authenticated mode or guest mode
 	const isAuthenticated = user && profile;
 
-	const userStories = isAuthenticated ? [
-		{
-			id: "1",
-			title: "Love in the Vineyard",
-			genre: "Contemporary",
-			createdAt: "2024-01-15",
-			excerpt:
-				"Sarah never expected to find love while managing her family's struggling vineyard...",
-			isPublic: false,
-			characters: ["Sarah", "Marco"],
-		},
-		{
-			id: "2",
-			title: "The Duke's Secret",
-			genre: "Historical",
-			createdAt: "2024-01-10",
-			excerpt:
-				"In Regency London, Lady Catherine discovers that the mysterious Duke harbors a secret that could change everything...",
-			isPublic: true,
-			characters: ["Lady Catherine", "Duke Alexander"],
-		},
-	] : guestStories;
+	// Use guest stories for guest mode, database stories for authenticated users
+	const displayStories = isAuthenticated ? userStories : guestStories;
 
 	const sharedStories = isAuthenticated ? [
 		{
@@ -237,7 +221,7 @@ export default function DashboardPage() {
 							<h3 className="font-semibold">Your Stories</h3>
 						</div>
 						<p className="text-2xl font-heading text-primary">
-							{userStories.length}
+							{isAuthenticated ? userStories.length : guestStories.length}
 						</p>
 						<p className="text-sm text-muted-foreground">Stories created</p>
 					</div>
@@ -276,10 +260,69 @@ export default function DashboardPage() {
 
 				<div className="flex items-center justify-between mb-6">
 					<h2 className="text-2xl font-heading">Your Stories</h2>
-					<CreateStoryButton />
+					<div className="flex items-center gap-2">
+						{isAuthenticated && (
+							<Button onClick={refetchStories} variant="ghost" size="sm">
+								<RefreshCw className="h-4 w-4" />
+							</Button>
+						)}
+						<CreateStoryButton />
+					</div>
 				</div>
 
-				<StoryGrid stories={userStories} showAuthor={false} />
+				{/* Stories Loading State */}
+				{isAuthenticated && storiesLoading && (
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{[1, 2, 3].map((i) => (
+							<Card key={i} className="bg-card/60 backdrop-blur-sm">
+								<CardHeader className="pb-3">
+									<div className="space-y-2">
+										<div className="h-6 bg-muted rounded animate-pulse" />
+										<div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+										<div className="flex gap-2">
+											<div className="h-5 bg-muted rounded animate-pulse w-16" />
+											<div className="h-5 bg-muted rounded animate-pulse w-20" />
+										</div>
+									</div>
+								</CardHeader>
+								<CardContent className="space-y-4">
+									<div className="space-y-2">
+										<div className="h-4 bg-muted rounded animate-pulse" />
+										<div className="h-4 bg-muted rounded animate-pulse w-4/5" />
+										<div className="h-4 bg-muted rounded animate-pulse w-3/5" />
+									</div>
+									<div className="h-8 bg-muted rounded animate-pulse" />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				)}
+
+				{/* Stories Error State */}
+				{isAuthenticated && storiesError && (
+					<Card className="bg-card/60 backdrop-blur-sm border-destructive/20">
+						<CardHeader className="text-center">
+							<CardTitle className="text-lg flex items-center justify-center gap-2 text-destructive">
+								<AlertCircle className="h-5 w-5" />
+								Error Loading Stories
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="text-center space-y-4">
+							<p className="text-sm text-muted-foreground">
+								{storiesError}
+							</p>
+							<Button onClick={refetchStories} variant="outline" size="sm">
+								<RefreshCw className="mr-2 h-4 w-4" />
+								Try Again
+							</Button>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Stories Content */}
+				{!storiesLoading && !storiesError && (
+					<StoryGrid stories={displayStories} showAuthor={false} />
+				)}
 
 				{sharedStories.length > 0 && (
 					<>

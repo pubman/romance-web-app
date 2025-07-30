@@ -1,9 +1,11 @@
 "use client";
 
 import { StoryCard } from "@/components/story-card";
+import { DatabaseStory } from "@/hooks/use-user-stories";
 import { Heart, BookOpen } from "lucide-react";
 
-interface Story {
+// Legacy story interface for guest stories
+interface LegacyStory {
   id: string;
   title: string;
   genre: string;
@@ -13,11 +15,43 @@ interface Story {
   excerpt: string;
   isPublic?: boolean;
   characters: string[];
+  isDemo?: boolean;
 }
 
 interface StoryGridProps {
-  stories: Story[];
+  stories: DatabaseStory[] | LegacyStory[];
   showAuthor?: boolean;
+}
+
+// Function to check if story is legacy format
+function isLegacyStory(story: DatabaseStory | LegacyStory): story is LegacyStory {
+  return 'excerpt' in story && 'genre' in story && !('status' in story);
+}
+
+// Function to convert legacy story to database story format
+function convertLegacyStory(story: LegacyStory): DatabaseStory {
+  return {
+    id: story.id,
+    title: story.title,
+    description: story.excerpt,
+    cover_image_url: null,
+    status: 'completed' as const,
+    is_public: story.isPublic || false,
+    word_count: 0,
+    chapter_count: 1,
+    story_preferences: {
+      genre: story.genre
+    },
+    wizard_data: {
+      characters: {
+        protagonist: story.characters[0] ? { name: story.characters[0] } : undefined,
+        love_interest: story.characters[1] ? { name: story.characters[1] } : undefined
+      }
+    },
+    generation_progress: 100,
+    created_at: story.createdAt || story.sharedAt || new Date().toISOString(),
+    updated_at: story.createdAt || story.sharedAt || new Date().toISOString()
+  };
 }
 
 export function StoryGrid({ stories, showAuthor = false }: StoryGridProps) {
@@ -44,9 +78,14 @@ export function StoryGrid({ stories, showAuthor = false }: StoryGridProps) {
     );
   }
 
+  // Convert legacy stories to database format for consistency
+  const normalizedStories: DatabaseStory[] = stories.map(story => 
+    isLegacyStory(story) ? convertLegacyStory(story) : story
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {stories.map((story) => (
+      {normalizedStories.map((story) => (
         <StoryCard key={story.id} story={story} showAuthor={showAuthor} />
       ))}
     </div>

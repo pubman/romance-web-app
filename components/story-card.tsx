@@ -3,7 +3,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Eye, MoreHorizontal } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Heart, Share2, Eye, MoreHorizontal, Clock, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,25 +12,82 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { DatabaseStory } from "@/hooks/use-user-stories";
 
 interface StoryCardProps {
-  story: {
-    id: string;
-    title: string;
-    genre: string;
-    createdAt?: string;
-    sharedAt?: string;
-    author?: string;
-    excerpt: string;
-    isPublic?: boolean;
-    characters: string[];
-  };
+  story: DatabaseStory;
   showAuthor?: boolean;
 }
 
 export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
-  const date = story.createdAt || story.sharedAt;
-  const formattedDate = date ? new Date(date).toLocaleDateString() : "";
+  // Extract data from database schema
+  const genre = story.story_preferences?.genre || 
+               story.story_preferences?.elements?.genre || 
+               "Romance";
+  
+  // Extract characters from wizard_data
+  const characters: string[] = [];
+  if (story.wizard_data?.characters?.protagonist?.name) {
+    characters.push(story.wizard_data.characters.protagonist.name);
+  }
+  if (story.wizard_data?.characters?.love_interest?.name) {
+    characters.push(story.wizard_data.characters.love_interest.name);
+  }
+  
+  // Create excerpt from description
+  const excerpt = story.description || "No description available.";
+  const truncatedExcerpt = excerpt.length > 150 
+    ? excerpt.substring(0, 150) + "..." 
+    : excerpt;
+  
+  // Format date
+  const formattedDate = story.created_at 
+    ? new Date(story.created_at).toLocaleDateString() 
+    : "";
+  
+  // Status styling and icons
+  const getStatusConfig = (status: DatabaseStory['status']) => {
+    switch (status) {
+      case 'completed':
+        return {
+          icon: CheckCircle,
+          color: 'text-green-600',
+          bgColor: 'bg-green-100 dark:bg-green-900/20',
+          label: 'Completed'
+        };
+      case 'generating':
+        return {
+          icon: Loader2,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+          label: 'Generating'
+        };
+      case 'draft':
+        return {
+          icon: Clock,
+          color: 'text-yellow-600',
+          bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
+          label: 'Draft'
+        };
+      case 'failed':
+        return {
+          icon: AlertCircle,
+          color: 'text-red-600',
+          bgColor: 'bg-red-100 dark:bg-red-900/20',
+          label: 'Failed'
+        };
+      default:
+        return {
+          icon: Clock,
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-100 dark:bg-gray-900/20',
+          label: status
+        };
+    }
+  };
+  
+  const statusConfig = getStatusConfig(story.status);
+  const StatusIcon = statusConfig.icon;
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 bg-card/60 backdrop-blur-sm border hover:border-primary/20">
@@ -77,9 +135,16 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
         
         <div className="flex items-center gap-2 mt-2">
           <Badge variant="secondary" className="text-xs">
-            {story.genre}
+            {genre}
           </Badge>
-          {!showAuthor && story.isPublic && (
+          
+          {/* Status badge */}
+          <Badge variant="outline" className={`text-xs flex items-center gap-1 ${statusConfig.bgColor}`}>
+            <StatusIcon className={`h-3 w-3 ${statusConfig.color} ${story.status === 'generating' ? 'animate-spin' : ''}`} />
+            {statusConfig.label}
+          </Badge>
+          
+          {!showAuthor && story.is_public && (
             <Badge variant="outline" className="text-xs">
               Public
             </Badge>
@@ -87,28 +152,71 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
-        <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-          {story.excerpt}
+      <CardContent className="pt-0 space-y-4">
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          {truncatedExcerpt}
         </p>
+        
+        {/* Generation Progress for generating stories */}
+        {story.status === 'generating' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Generation Progress</span>
+              <span className="font-medium">{story.generation_progress}%</span>
+            </div>
+            <Progress value={story.generation_progress} className="h-2" />
+          </div>
+        )}
         
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <span>Characters:</span>
-            <span className="font-medium">{story.characters.join(", ")}</span>
+            {characters.length > 0 ? (
+              <>
+                <span>Characters:</span>
+                <span className="font-medium">{characters.join(", ")}</span>
+              </>
+            ) : (
+              <span>No characters set</span>
+            )}
           </div>
           {formattedDate && (
-            <span>{showAuthor ? "Shared" : "Created"} {formattedDate}</span>
+            <span>Created {formattedDate}</span>
           )}
         </div>
         
+        {/* Word count if available */}
+        {story.word_count > 0 && (
+          <div className="text-xs text-muted-foreground">
+            {story.word_count.toLocaleString()} words
+          </div>
+        )}
+        
         <div className="mt-4">
-          <Button asChild variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-            <Link href={`/story/${story.id}`}>
-              <Eye className="mr-2 h-4 w-4" />
-              Read Story
-            </Link>
-          </Button>
+          {story.status === 'completed' ? (
+            <Button asChild variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <Link href={`/story/${story.id}`}>
+                <Eye className="mr-2 h-4 w-4" />
+                Read Story
+              </Link>
+            </Button>
+          ) : story.status === 'generating' ? (
+            <Button disabled size="sm" className="w-full">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </Button>
+          ) : story.status === 'failed' ? (
+            <Button variant="outline" size="sm" className="w-full">
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Generation Failed
+            </Button>
+          ) : (
+            <Button asChild variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <Link href={`/story/${story.id}`}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Draft
+              </Link>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
