@@ -85,15 +85,15 @@ export function StoryWizard() {
 			genre: "contemporary",
 			mood: "passionate",
 			characters: {
-				protagonist: { 
-					name: "Emma", 
-					traits: ["Independent", "Witty", "Ambitious"], 
-					occupation: "Architect" 
+				protagonist: {
+					name: "Emma",
+					traits: ["Independent", "Witty", "Ambitious"],
+					occupation: "Architect",
 				},
-				love_interest: { 
-					name: "James", 
-					traits: ["Protective", "Charming", "Mysterious"], 
-					occupation: "Detective" 
+				love_interest: {
+					name: "James",
+					traits: ["Protective", "Charming", "Mysterious"],
+					occupation: "Detective",
 				},
 			},
 			setting: {
@@ -108,9 +108,11 @@ export function StoryWizard() {
 				conflict_type: "both",
 			},
 		};
-		
+
 		setPreferences(testPreferences);
-		setFormattedPrompt("Emma, an ambitious architect, finds herself working alongside the mysterious detective James on a case involving her latest building project. Their initial clash turns into undeniable chemistry as they navigate external threats and internal conflicts in the heart of New York City.");
+		setFormattedPrompt(
+			"Emma, an ambitious architect, finds herself working alongside the mysterious detective James on a case involving her latest building project. Their initial clash turns into undeniable chemistry as they navigate external threats and internal conflicts in the heart of New York City."
+		);
 		setCurrentStep(6); // Jump to review step
 	};
 
@@ -244,11 +246,11 @@ export function StoryWizard() {
 								Create Your Story
 							</CardTitle>
 							<CardDescription className="text-lg mt-2">
-								Let's craft your perfect romance tale together
+								Let&apos;s craft your perfect romance tale together
 							</CardDescription>
 						</div>
 						<div className="text-right">
-							{process.env.NODE_ENV === 'development' && (
+							{process.env.NODE_ENV === "development" && (
 								<Button
 									variant="outline"
 									size="sm"

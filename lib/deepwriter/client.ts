@@ -16,7 +16,8 @@ export class DeepwriterApiClient {
 
   private async makeRequest<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    customHeaders?: Record<string, string>
   ): Promise<T> {
     const url = `${this.config.baseURL}${endpoint}`;
     
@@ -31,6 +32,7 @@ export class DeepwriterApiClient {
       headers: {
         ...defaultHeaders,
         ...options.headers,
+        ...customHeaders,
       },
     };
 
@@ -121,7 +123,7 @@ export class DeepwriterApiClient {
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, unknown>, customHeaders?: Record<string, string>): Promise<T> {
     let url = endpoint;
     if (params) {
       const searchParams = new URLSearchParams();
@@ -138,17 +140,17 @@ export class DeepwriterApiClient {
 
     return this.makeRequest<T>(url, {
       method: 'GET',
-    });
+    }, customHeaders);
   }
 
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown, customHeaders?: Record<string, string>): Promise<T> {
     return this.makeRequest<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, customHeaders);
   }
 
-  async patch<T>(endpoint: string, data?: unknown, params?: Record<string, unknown>): Promise<T> {
+  async patch<T>(endpoint: string, data?: unknown, params?: Record<string, unknown>, customHeaders?: Record<string, string>): Promise<T> {
     let url = endpoint;
     if (params) {
       const searchParams = new URLSearchParams();
@@ -166,27 +168,27 @@ export class DeepwriterApiClient {
     return this.makeRequest<T>(url, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, customHeaders);
   }
 
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown, customHeaders?: Record<string, string>): Promise<T> {
     return this.makeRequest<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, customHeaders);
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, customHeaders?: Record<string, string>): Promise<T> {
     return this.makeRequest<T>(endpoint, {
       method: 'DELETE',
-    });
+    }, customHeaders);
   }
 
   /**
    * Make a raw request that returns the Response object directly
    * Useful for binary data like PDFs
    */
-  async getRaw(endpoint: string, params?: Record<string, unknown>): Promise<Response> {
+  async getRaw(endpoint: string, params?: Record<string, unknown>, customHeaders?: Record<string, string>): Promise<Response> {
     let url = endpoint;
     if (params) {
       const searchParams = new URLSearchParams();
@@ -210,7 +212,10 @@ export class DeepwriterApiClient {
 
     const requestOptions: RequestInit = {
       method: 'GET',
-      headers: defaultHeaders,
+      headers: {
+        ...defaultHeaders,
+        ...customHeaders,
+      },
     };
 
     // Add timeout using AbortController

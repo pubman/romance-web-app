@@ -24,7 +24,8 @@ export class DeepwriterService {
    */
   async createProject(
     projectName: string,
-    email: string
+    email: string,
+    customHeaders?: Record<string, string>
   ): Promise<DeepwriterProject> {
     console.log('Creating DeepWriter project:', {
       projectName,
@@ -42,7 +43,10 @@ export class DeepwriterService {
 
     const response = await this.client.post<CreateProjectResponse>(
       '/api/createProject',
-      request
+      request,
+      {
+        'X-API-Key': this.client['config']?.apiKey || ''
+      }
     );
 
     console.log('CreateProject response:', response);
@@ -63,7 +67,8 @@ export class DeepwriterService {
     prompt: string,
     author?: string,
     title?: string,
-    email?: string
+    email?: string,
+    customHeaders?: Record<string, string>
   ): Promise<DeepwriterProject> {
     const request: UpdateProjectRequest = {
       prompt,
@@ -75,7 +80,10 @@ export class DeepwriterService {
     await this.client.patch<void>(
       '/api/updateProject',
       request,
-      { projectId }
+      { projectId },
+      {
+        'X-API-Key': this.client['config']?.apiKey || ''
+      }
     );
 
     // Return updated project object
@@ -93,7 +101,8 @@ export class DeepwriterService {
    */
   async generateWork(
     projectId: string,
-    options?: Omit<GenerateWorkRequest, 'projectId'>
+    options?: Omit<GenerateWorkRequest, 'projectId'>,
+    customHeaders?: Record<string, string>
   ): Promise<DeepwriterJob> {
     const request: GenerateWorkRequest = {
       projectId,
@@ -104,7 +113,10 @@ export class DeepwriterService {
 
     const response = await this.client.post<GenerateWorkResponse>(
       '/api/generateWork',
-      request
+      request,
+      {
+        'X-API-Key': this.client['config']?.apiKey || ''
+      }
     );
 
     // Validate that we received a job ID
@@ -138,7 +150,8 @@ export class DeepwriterService {
     prompt: string,
     author: string,
     email: string,
-    config: Partial<RomanceGenerationConfig> = {}
+    config: Partial<RomanceGenerationConfig> = {},
+    customHeaders?: Record<string, string>
   ): Promise<DeepwriterJob> {
     const {
       enableTableOfContents = false,
@@ -172,7 +185,8 @@ export class DeepwriterService {
 
     const response = await this.client.post<GenerateWorkResponse>(
       '/api/generateWork',
-      request
+      request,
+      customHeaders
     );
 
     // Validate that we received a job ID
@@ -219,37 +233,37 @@ Based on the provided prompt specifications.`;
   /**
    * Check the status of a generation job
    */
-  async checkJobStatus(jobId: string): Promise<DeepwriterJob> {
-    return this.client.get<DeepwriterJob>(`/api/getJobStatus`, { jobId });
+  async checkJobStatus(jobId: string, customHeaders?: Record<string, string>): Promise<DeepwriterJob> {
+    return this.client.get<DeepwriterJob>(`/api/getJobStatus`, { jobId }, customHeaders);
   }
 
   /**
    * Get the content of a completed job
    */
-  async getJobContent(jobId: string): Promise<DeepwriterContent> {
-    return this.client.get<DeepwriterContent>(`/api/jobs/${jobId}/content`);
+  async getJobContent(jobId: string, customHeaders?: Record<string, string>): Promise<DeepwriterContent> {
+    return this.client.get<DeepwriterContent>(`/api/jobs/${jobId}/content`, undefined, customHeaders);
   }
 
   /**
    * Cancel a running job
    */
-  async cancelJob(jobId: string): Promise<void> {
-    await this.client.delete<void>(`/api/jobs/${jobId}/cancel`);
+  async cancelJob(jobId: string, customHeaders?: Record<string, string>): Promise<void> {
+    await this.client.delete<void>(`/api/jobs/${jobId}/cancel`, customHeaders);
   }
 
   /**
    * Preview PDF for a completed job (for iframe display)
    */
-  async previewPdf(jobId: string): Promise<ArrayBuffer> {
-    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`);
+  async previewPdf(jobId: string, customHeaders?: Record<string, string>): Promise<ArrayBuffer> {
+    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`, undefined, customHeaders);
     return response.arrayBuffer();
   }
 
   /**
    * Download PDF for a completed job (for file downloads)
    */
-  async downloadPdf(jobId: string): Promise<ArrayBuffer> {
-    const response = await this.client.getRaw(`/api/downloadPdf/${jobId}`);
+  async downloadPdf(jobId: string, customHeaders?: Record<string, string>): Promise<ArrayBuffer> {
+    const response = await this.client.getRaw(`/api/downloadPdf/${jobId}`, undefined, customHeaders);
     return response.arrayBuffer();
   }
 }

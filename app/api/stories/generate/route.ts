@@ -174,13 +174,7 @@ export async function POST(request: NextRequest) {
         .update({
           generation_job_id: job.id,
           updated_at: new Date().toISOString(),
-          // Store generation config for future reference
-          generation_metadata: {
-            config: generationConfig,
-            enhanced_mode: true,
-            fallback_used: job.message?.includes('fallback') || false,
-            job_created_at: job.created_at,
-          },
+
         })
         .eq('id', story.id);
 
