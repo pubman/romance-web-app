@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, RefreshCw, AlertCircle, User, MapPin, Clock, Heart, Zap } from 'lucide-react';
+import { ArrowLeft, RefreshCw, AlertCircle, User, MapPin, Clock, Heart, Zap, Shield } from 'lucide-react';
 import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -142,6 +142,26 @@ export default function StoryRetryPage() {
             </p>
           </div>
         </div>
+
+        {/* Reassurance Card */}
+        <Card className="border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/10">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                  Don't worry!
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-200">
+                  Failed jobs don't cost any credits. Only successful story generations will use your credits, 
+                  so you can retry as many times as needed without worry.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Error Message */}
         {story.error_message && (
