@@ -31,6 +31,7 @@ export interface UpdateProjectRequest {
   prompt: string;
   author?: string;
   title?: string;
+  email?: string;
 }
 
 export interface GenerateWorkRequest {

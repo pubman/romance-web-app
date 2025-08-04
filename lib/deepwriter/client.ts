@@ -55,8 +55,21 @@ export class DeepwriterApiClient {
 
       if (!response.ok) {
         let errorData: DeepwriterApiError;
+        let responseText: string;
+        
         try {
-          errorData = await response.json();
+          responseText = await response.text();
+          console.log('DeepWriter API Error Response (raw):', responseText);
+          
+          try {
+            errorData = JSON.parse(responseText);
+          } catch {
+            errorData = {
+              error: 'Parse Error',
+              message: responseText || response.statusText || 'Request failed',
+              status: response.status,
+            };
+          }
         } catch {
           errorData = {
             error: 'Unknown Error',
@@ -64,6 +77,15 @@ export class DeepwriterApiClient {
             status: response.status,
           };
         }
+
+        console.log('DeepWriter API Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: url,
+          method: requestOptions.method || 'GET',
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
 
         throw new DeepwriterError(
           errorData.message || 'API request failed',
@@ -200,8 +222,21 @@ export class DeepwriterApiClient {
 
       if (!response.ok) {
         let errorData: DeepwriterApiError;
+        let responseText: string;
+        
         try {
-          errorData = await response.json();
+          responseText = await response.text();
+          console.log('DeepWriter API Error Response (raw):', responseText);
+          
+          try {
+            errorData = JSON.parse(responseText);
+          } catch {
+            errorData = {
+              error: 'Parse Error',
+              message: responseText || response.statusText || 'Request failed',
+              status: response.status,
+            };
+          }
         } catch {
           errorData = {
             error: 'Unknown Error',
@@ -209,6 +244,15 @@ export class DeepwriterApiClient {
             status: response.status,
           };
         }
+
+        console.log('DeepWriter API Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: fullUrl,
+          method: 'GET',
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
 
         throw new DeepwriterError(
           errorData.message || 'API request failed',

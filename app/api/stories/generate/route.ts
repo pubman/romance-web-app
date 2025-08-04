@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
         project.id,
         deepwriterPrompt,
         user.email || user.id,
-        title
+        title,
+        user.email || user.id
       );
 
       // Map story preferences to enhanced DeepWriter configuration
@@ -199,30 +200,79 @@ export async function POST(request: NextRequest) {
     } catch (deepwriterError) {
       console.error('DeepWriter API error:', deepwriterError);
       
-      // Log more detailed error information
+      let errorMessage = 'Failed to start story generation';
+      let errorDetails = 'Unknown error';
+      let statusCode = 500;
+      
+      // Handle different error types
       if (deepwriterError instanceof Error) {
         console.error('Error message:', deepwriterError.message);
         console.error('Error stack:', deepwriterError.stack);
-      }
-      
-      // If it's a DeepWriter API error, log the response details
-      if (deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError) {
-        console.error('DeepWriter API status:', deepwriterError.status);
-        console.error('DeepWriter API response:', deepwriterError);
+        errorDetails = deepwriterError.message;
+        
+        // Check if it's a validation error from our prompt generator
+        if (deepwriterError.message.includes('Generated prompt') || 
+            deepwriterError.message.includes('required')) {
+          errorMessage = 'Story configuration validation failed';
+          statusCode = 400;
+        }
+        
+        // If it's a DeepWriter API error, provide more specific feedback
+        if (deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError) {
+          const status = (deepwriterError as any).status;
+          const response = (deepwriterError as any).response;
+          
+          console.error('DeepWriter API status:', status);
+          console.error('DeepWriter API response:', response);
+          
+          statusCode = status;
+          
+          // Provide user-friendly error messages based on status
+          switch (status) {
+            case 400:
+              errorMessage = 'Invalid story configuration provided to DeepWriter';
+              errorDetails = response?.message || deepwriterError.message;
+              break;
+            case 401:
+              errorMessage = 'DeepWriter API authentication failed';
+              errorDetails = 'API key may be invalid or expired';
+              break;
+            case 403:
+              errorMessage = 'Access denied by DeepWriter API';
+              errorDetails = 'Check API permissions and account status';
+              break;
+            case 429:
+              errorMessage = 'DeepWriter API rate limit exceeded';
+              errorDetails = 'Please try again in a few minutes';
+              break;
+            case 500:
+              errorMessage = 'DeepWriter service error';
+              errorDetails = 'External service is temporarily unavailable';
+              break;
+            default:
+              errorMessage = `DeepWriter API error (${status})`;
+              errorDetails = response?.message || deepwriterError.message;
+          }
+        }
       }
 
-      // Update story status to failed
+      // Update story status to failed with error details
       await supabase
         .from('stories')
         .update({
           status: 'failed',
+          error_message: errorDetails,
           updated_at: new Date().toISOString(),
         })
         .eq('id', story.id);
 
       return NextResponse.json(
-        { error: 'Failed to start story generation', details: deepwriterError instanceof Error ? deepwriterError.message : 'Unknown error' },
-        { status: 500 }
+        { 
+          error: errorMessage, 
+          details: errorDetails,
+          code: statusCode 
+        },
+        { status: statusCode }
       );
     }
 

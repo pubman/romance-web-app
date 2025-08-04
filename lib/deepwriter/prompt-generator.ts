@@ -20,6 +20,9 @@ interface StoryPreferences {
 }
 
 export function generateDeepWriterPrompt(preferences: StoryPreferences): string {
+  // Validate preferences
+  validateStoryPreferences(preferences);
+
   const {
     genre,
     mood,
@@ -58,7 +61,57 @@ Please create an engaging romance story that incorporates all these elements nat
 ${getAdditionalGuidelines(elements.heat_level, elements.story_length)}
 `.trim();
 
+  // Validate the generated prompt
+  validatePrompt(prompt);
+
   return prompt;
+}
+
+function validateStoryPreferences(preferences: StoryPreferences): void {
+  if (!preferences.genre || !preferences.mood) {
+    throw new Error('Genre and mood are required');
+  }
+  
+  if (!preferences.characters.protagonist.name || !preferences.characters.love_interest.name) {
+    throw new Error('Character names are required');
+  }
+  
+  if (!preferences.setting.location) {
+    throw new Error('Setting location is required');
+  }
+  
+  if (!preferences.elements.tropes || preferences.elements.tropes.length === 0) {
+    throw new Error('At least one trope is required');
+  }
+}
+
+function validatePrompt(prompt: string): void {
+  const maxLength = 10000; // Reasonable max length for API
+  const minLength = 100;   // Minimum meaningful prompt length
+  
+  if (prompt.length < minLength) {
+    throw new Error(`Generated prompt too short: ${prompt.length} characters (minimum: ${minLength})`);
+  }
+  
+  if (prompt.length > maxLength) {
+    throw new Error(`Generated prompt too long: ${prompt.length} characters (maximum: ${maxLength})`);
+  }
+  
+  // Check if prompt seems complete (should end with guidelines)
+  if (!prompt.includes('**Additional Guidelines:**')) {
+    throw new Error('Generated prompt appears incomplete - missing additional guidelines section');
+  }
+  
+  // Check for incomplete sections
+  if (prompt.includes('undefined') || prompt.includes('null')) {
+    throw new Error('Generated prompt contains undefined values');
+  }
+  
+  console.log('Prompt validation passed:', {
+    length: prompt.length,
+    hasGuidelines: prompt.includes('**Additional Guidelines:**'),
+    preview: prompt.substring(0, 200) + '...'
+  });
 }
 
 function getTimePeriodDescription(period: string): string {
@@ -152,6 +205,9 @@ function getAdditionalGuidelines(heatLevel: string, storyLength: string): string
     guidelines += "- Develop complex character arcs and multiple plot threads\n";
     guidelines += "- Include subplots and supporting character development\n";
   }
+
+  guidelines += "- Ensure a satisfying and emotionally fulfilling conclusion\n";
+  guidelines += "- Maintain consistent character voice and development throughout";
 
   return guidelines;
 }

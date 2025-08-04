@@ -62,12 +62,14 @@ export class DeepwriterService {
     projectId: string,
     prompt: string,
     author?: string,
-    title?: string
+    title?: string,
+    email?: string
   ): Promise<DeepwriterProject> {
     const request: UpdateProjectRequest = {
       prompt,
       author,
       title,
+      email,
     };
 
     await this.client.patch<void>(
