@@ -3,15 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Sparkles, Loader2, FileText } from "lucide-react";
 
 interface ReviewStepProps {
   preferences: any;
+  formattedPrompt: string;
   onGenerate: () => void;
   isGenerating: boolean;
 }
 
-export function ReviewStep({ preferences, onGenerate, isGenerating }: ReviewStepProps) {
+export function ReviewStep({ preferences, formattedPrompt, onGenerate, isGenerating }: ReviewStepProps) {
   const getGenreName = (id: string) => {
     const genres: { [key: string]: string } = {
       contemporary: "Contemporary",
@@ -88,9 +90,9 @@ export function ReviewStep({ preferences, onGenerate, isGenerating }: ReviewStep
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h3 className="text-xl font-heading mb-2">Your Story Blueprint</h3>
+        <h3 className="text-xl font-heading mb-2">Final Review</h3>
         <p className="text-muted-foreground">
-          Review your preferences before we create your perfect romance story
+          Review your story preferences and approved prompt before generation
         </p>
       </div>
 
@@ -193,6 +195,30 @@ export function ReviewStep({ preferences, onGenerate, isGenerating }: ReviewStep
           </CardContent>
         </Card>
       </div>
+
+      {/* Approved Prompt Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            <FileText className="mr-2 h-5 w-5" />
+            Approved Story Prompt
+          </CardTitle>
+          <CardDescription>
+            This is the prompt that will be used to generate your story
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={formattedPrompt}
+            readOnly
+            className="min-h-[200px] resize-none bg-muted/50"
+          />
+          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
+            <p>{formattedPrompt.length} characters</p>
+            <p className="text-green-600 dark:text-green-400">✓ Approved and ready for generation</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="text-center pt-6">
         <Button 
