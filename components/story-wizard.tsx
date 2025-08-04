@@ -80,6 +80,40 @@ export function StoryWizard() {
 		},
 	});
 
+	const fillTestData = () => {
+		const testPreferences: StoryPreferences = {
+			genre: "contemporary",
+			mood: "passionate",
+			characters: {
+				protagonist: { 
+					name: "Emma", 
+					traits: ["Independent", "Witty", "Ambitious"], 
+					occupation: "Architect" 
+				},
+				love_interest: { 
+					name: "James", 
+					traits: ["Protective", "Charming", "Mysterious"], 
+					occupation: "Detective" 
+				},
+			},
+			setting: {
+				time_period: "modern",
+				location: "New York City",
+				atmosphere: "urban",
+			},
+			elements: {
+				tropes: ["Enemies to Lovers", "Workplace Romance", "Grumpy/Sunshine"],
+				heat_level: "warm",
+				story_length: "novella",
+				conflict_type: "both",
+			},
+		};
+		
+		setPreferences(testPreferences);
+		setFormattedPrompt("Emma, an ambitious architect, finds herself working alongside the mysterious detective James on a case involving her latest building project. Their initial clash turns into undeniable chemistry as they navigate external threats and internal conflicts in the heart of New York City.");
+		setCurrentStep(6); // Jump to review step
+	};
+
 	const progress = (currentStep / steps.length) * 100;
 
 	const updatePreferences = (stepData: Partial<StoryPreferences>) => {
@@ -214,6 +248,16 @@ export function StoryWizard() {
 							</CardDescription>
 						</div>
 						<div className="text-right">
+							{process.env.NODE_ENV === 'development' && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={fillTestData}
+									className="mb-2 text-xs"
+								>
+									Dev: Fill Test Data
+								</Button>
+							)}
 							<p className="text-sm text-muted-foreground">
 								Step {currentStep} of {steps.length}
 							</p>

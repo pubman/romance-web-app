@@ -209,8 +209,7 @@ Based on the provided prompt specifications.`;
    * Download PDF for a completed job (for file downloads)
    */
   async downloadPdf(jobId: string): Promise<ArrayBuffer> {
-    // Using the same endpoint for now, but could be different in the future
-    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`);
+    const response = await this.client.getRaw(`/api/downloadPdf/${jobId}`);
     return response.arrayBuffer();
   }
 }
