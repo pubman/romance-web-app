@@ -102,7 +102,9 @@ export async function POST(request: NextRequest) {
 
     try {
       // Initialize DeepWriter service
+      console.log('Initializing DeepWriter service...');
       const deepwriterService = createDeepwriterService();
+      console.log('DeepWriter service initialized successfully');
 
       // Create DeepWriter project
       const project = await deepwriterService.createProject(
@@ -196,6 +198,18 @@ export async function POST(request: NextRequest) {
 
     } catch (deepwriterError) {
       console.error('DeepWriter API error:', deepwriterError);
+      
+      // Log more detailed error information
+      if (deepwriterError instanceof Error) {
+        console.error('Error message:', deepwriterError.message);
+        console.error('Error stack:', deepwriterError.stack);
+      }
+      
+      // If it's a DeepWriter API error, log the response details
+      if (deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError) {
+        console.error('DeepWriter API status:', deepwriterError.status);
+        console.error('DeepWriter API response:', deepwriterError);
+      }
 
       // Update story status to failed
       await supabase
@@ -207,7 +221,7 @@ export async function POST(request: NextRequest) {
         .eq('id', story.id);
 
       return NextResponse.json(
-        { error: 'Failed to start story generation' },
+        { error: 'Failed to start story generation', details: deepwriterError instanceof Error ? deepwriterError.message : 'Unknown error' },
         { status: 500 }
       );
     }

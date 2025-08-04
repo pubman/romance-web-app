@@ -26,15 +26,26 @@ export class DeepwriterService {
     projectName: string,
     email: string
   ): Promise<DeepwriterProject> {
+    console.log('Creating DeepWriter project:', {
+      projectName,
+      email,
+      baseURL: this.client['config']?.baseURL,
+      hasApiKey: !!this.client['config']?.apiKey
+    });
+
     const request: CreateProjectRequest = {
       newProjectName: projectName,
       email,
     };
 
+    console.log('CreateProject request payload:', request);
+
     const response = await this.client.post<CreateProjectResponse>(
-      '/createProject',
+      '/api/createProject',
       request
     );
+
+    console.log('CreateProject response:', response);
 
     // Return a project object with the ID
     return {
@@ -60,7 +71,7 @@ export class DeepwriterService {
     };
 
     await this.client.patch<void>(
-      '/updateProject',
+      '/api/updateProject',
       request,
       { projectId }
     );
@@ -90,7 +101,7 @@ export class DeepwriterService {
     };
 
     const response = await this.client.post<GenerateWorkResponse>(
-      '/generateWork',
+      '/api/generateWork',
       request
     );
 
@@ -147,7 +158,7 @@ export class DeepwriterService {
     };
 
     const response = await this.client.post<GenerateWorkResponse>(
-      '/generateWork',
+      '/api/generateWork',
       request
     );
 
@@ -216,10 +227,21 @@ Based on the provided prompt specifications.`;
 
 // Default configuration factory
 export function createDeepwriterService(): DeepwriterService {
+  console.log('Creating DeepWriter service with environment variables:', {
+    DEEPWRITER_API_URL: process.env.DEEPWRITER_API_URL || 'NOT_SET',
+    DEEPWRITER_API_KEY: process.env.DEEPWRITER_API_KEY ? `${process.env.DEEPWRITER_API_KEY.substring(0, 8)}...` : 'NOT_SET'
+  });
+
   const config: DeepwriterApiConfig = {
-    baseURL: process.env.DEEPWRITER_API_URL || 'https://www.deepwriter.com/api',
+    baseURL: process.env.DEEPWRITER_API_URL || 'https://app.deepwriter.com',
     apiKey: process.env.DEEPWRITER_API_KEY || '',
   };
+
+  console.log('Final DeepWriter config:', {
+    baseURL: config.baseURL,
+    hasApiKey: !!config.apiKey,
+    apiKeyLength: config.apiKey?.length || 0
+  });
 
   if (!config.apiKey) {
     throw new Error('DEEPWRITER_API_KEY environment variable is required');

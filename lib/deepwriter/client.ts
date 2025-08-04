@@ -22,7 +22,7 @@ export class DeepwriterApiClient {
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.config.apiKey}`,
+      'x-api-key': this.config.apiKey,
     };
 
     const requestOptions: RequestInit = {
@@ -32,6 +32,17 @@ export class DeepwriterApiClient {
         ...options.headers,
       },
     };
+
+    // Log request details for debugging
+    console.log('DeepWriter API Request:', {
+      url,
+      method: requestOptions.method || 'GET',
+      headers: {
+        ...requestOptions.headers,
+        'x-api-key': this.config.apiKey ? `${this.config.apiKey.substring(0, 8)}...` : 'NOT_SET'
+      },
+      body: requestOptions.body ? JSON.parse(requestOptions.body as string) : undefined
+    });
 
     // Add timeout using AbortController
     const controller = new AbortController();
@@ -170,7 +181,7 @@ export class DeepwriterApiClient {
     const fullUrl = `${this.config.baseURL}${url}`;
     
     const defaultHeaders = {
-      'Authorization': `Bearer ${this.config.apiKey}`,
+      'x-api-key': this.config.apiKey,
     };
 
     const requestOptions: RequestInit = {

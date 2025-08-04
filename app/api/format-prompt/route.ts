@@ -116,12 +116,12 @@ export async function POST(request: NextRequest) {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
-    } catch (fetchError) {
+    } catch (fetchError: unknown) {
       clearTimeout(timeoutId);
       console.error(`[${requestId}] Fetch error:`, {
-        name: fetchError.name,
-        message: fetchError.message,
-        stack: fetchError.stack
+        name: (fetchError as Error).name,
+        message: (fetchError as Error).message,
+        stack: (fetchError as Error).stack
       });
       
       if (fetchError.name === 'AbortError') {
@@ -195,11 +195,11 @@ export async function POST(request: NextRequest) {
       requestId // Include for debugging
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[${requestId}] Unexpected error:`, {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
+      name: (error as Error).name,
+      message: (error as Error).message,
+      stack: (error as Error).stack
     });
     
     return NextResponse.json(

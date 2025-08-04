@@ -37,7 +37,24 @@ Please create an engaging romance story that incorporates all these elements nat
   return prompt;
 }
 
-export async function formatPromptWithAPI(prompt: string, projectId?: string): Promise<string> {
+export interface FormatPromptError {
+  message: string;
+  statusCode?: number;
+  requestId?: string;
+  retryable: boolean;
+  suggestion?: string;
+}
+
+export interface FormatPromptResult {
+  success: true;
+  formattedPrompt: string;
+  mock?: boolean;
+  warning?: string;
+}
+
+export type FormatPromptResponse = FormatPromptResult | { success: false; error: FormatPromptError };
+
+export async function formatPromptWithAPI(prompt: string, projectId?: string): Promise<FormatPromptResponse> {
   try {
     const response = await fetch('/api/format-prompt', {
       method: 'POST',
@@ -52,9 +69,68 @@ export async function formatPromptWithAPI(prompt: string, projectId?: string): P
 
     if (!response.ok) {
       let errorMessage = 'Failed to format prompt';
+      let suggestion: string | undefined;
+      let retryable = true;
+      
       try {
         const errorData = await response.json();
         errorMessage = errorData.error || errorMessage;
+        
+        // Check for specific error messages first
+        if (errorData.error && typeof errorData.error === 'string') {
+          if (errorData.error.includes('credits than your current balance')) {
+            errorMessage = 'Insufficient DeepWriter credits to enhance this prompt.';
+            suggestion = 'Please add more credits to your DeepWriter account or try again later.';
+            retryable = false;
+          } else if (errorData.error.includes('credits')) {
+            errorMessage = 'Credit-related error with DeepWriter API.';
+            suggestion = 'Please check your DeepWriter account balance.';
+            retryable = false;
+          }
+        }
+
+        // Provide user-friendly error messages based on status code
+        if (!suggestion) {
+          switch (response.status) {
+            case 400:
+              errorMessage = 'Invalid prompt format. Please check that your outline is not empty and try again.';
+              suggestion = 'Make sure your story outline contains text and is properly formatted.';
+              retryable = false;
+              break;
+            case 401:
+              errorMessage = 'Authentication failed with DeepWriter API.';
+              suggestion = 'Please check your API key configuration or contact support.';
+              retryable = false;
+              break;
+            case 403:
+              errorMessage = 'Access denied to DeepWriter API.';
+              suggestion = 'Please verify your API key permissions.';
+              retryable = false;
+              break;
+            case 404:
+              errorMessage = 'DeepWriter API endpoint not found.';
+              suggestion = 'Please check your API URL configuration.';
+              retryable = false;
+              break;
+            case 429:
+              errorMessage = 'Too many requests. Please wait a moment before trying again.';
+              suggestion = 'Wait a few seconds and try again.';
+              retryable = true;
+              break;
+            case 500:
+            case 502:
+            case 503:
+            case 504:
+              errorMessage = 'DeepWriter service is temporarily unavailable.';
+              suggestion = 'Please try again in a few moments.';
+              retryable = true;
+              break;
+            default:
+              if (errorData.error) {
+                errorMessage = errorData.error;
+              }
+          }
+        }
         
         // Log detailed error info for debugging
         console.error('Format prompt API error:', {
@@ -64,16 +140,20 @@ export async function formatPromptWithAPI(prompt: string, projectId?: string): P
           requestId: errorData.requestId
         });
         
-        // If it's a configuration error in development, provide helpful message
-        if (errorData.details && errorData.suggestion) {
-          throw new Error(`${errorMessage}: ${errorData.suggestion}`);
-        }
-        
       } catch (jsonError) {
         console.error('Failed to parse error response:', jsonError);
+        errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
       }
       
-      throw new Error(errorMessage);
+      return {
+        success: false,
+        error: {
+          message: errorMessage,
+          statusCode: response.status,
+          retryable,
+          suggestion,
+        }
+      };
     }
 
     const data = await response.json();
@@ -90,10 +170,35 @@ export async function formatPromptWithAPI(prompt: string, projectId?: string): P
       console.warn('DeepWriter API Mock Response:', data.warning);
     }
     
-    return data.formattedPrompt || prompt;
+    return {
+      success: true,
+      formattedPrompt: data.formattedPrompt || prompt,
+      mock: data.mock,
+      warning: data.warning
+    };
     
   } catch (error) {
     console.error('Format prompt request failed:', error);
-    throw error;
+    
+    // Handle network errors
+    let errorMessage = 'Failed to connect to the service.';
+    const retryable = true;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
+    return {
+      success: false,
+      error: {
+        message: errorMessage,
+        retryable,
+        suggestion: 'Please check your internet connection and try again.'
+      }
+    };
   }
 }

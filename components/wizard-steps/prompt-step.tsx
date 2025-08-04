@@ -5,11 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Wand2, Eye, EyeOff } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Wand2, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { StoryPreferences } from "@/components/story-wizard";
 import {
 	generatePromptFromPreferences,
 	formatPromptWithAPI,
+	FormatPromptError,
 } from "@/lib/format-prompt";
 
 interface PromptStepProps {
@@ -29,6 +31,7 @@ export function PromptStep({
 	const [showPreferences, setShowPreferences] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isApproved, setIsApproved] = useState(false);
+	const [formatError, setFormatError] = useState<FormatPromptError | null>(null);
 
 	// Generate initial prompt when component mounts or use existing formatted prompt
 	useEffect(() => {
@@ -44,12 +47,31 @@ export function PromptStep({
 
 	const handleFormatPrompt = async () => {
 		setIsFormatting(true);
+		setFormatError(null);
+		
 		try {
-			const formattedPrompt = await formatPromptWithAPI(editedPrompt);
-			setEditedPrompt(formattedPrompt);
+			const result = await formatPromptWithAPI(editedPrompt);
+			
+			if (result.success) {
+				setEditedPrompt(result.formattedPrompt);
+				// Show warning for mock responses
+				if (result.mock && result.warning) {
+					setFormatError({
+						message: result.warning,
+						retryable: false,
+						suggestion: 'Configure DeepWriter API credentials for production use.'
+					});
+				}
+			} else {
+				setFormatError(result.error);
+			}
 		} catch (error) {
-			console.error("Failed to format prompt:", error);
-			// Continue with unformatted prompt
+			console.error("Unexpected error formatting prompt:", error);
+			setFormatError({
+				message: "An unexpected error occurred.",
+				retryable: true,
+				suggestion: "Please try again."
+			});
 		} finally {
 			setIsFormatting(false);
 		}
@@ -64,12 +86,18 @@ export function PromptStep({
 		setEditedPrompt(generatedPrompt);
 		setIsEditing(false);
 		setIsApproved(false);
+		setFormatError(null);
 	};
 
 	const handlePromptChange = (value: string) => {
 		setEditedPrompt(value);
 		setIsEditing(true);
 		setIsApproved(false);
+		setFormatError(null);
+	};
+
+	const handleDismissError = () => {
+		setFormatError(null);
 	};
 
 	return (
@@ -133,6 +161,39 @@ export function PromptStep({
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Error Alert */}
+			{formatError && (
+				<Alert 
+					variant={formatError.retryable ? "warning" : "destructive"} 
+					dismissible 
+					onDismiss={handleDismissError}
+				>
+					<AlertTitle>
+						{formatError.retryable ? "Enhancement Failed" : "Enhancement Error"}
+					</AlertTitle>
+					<AlertDescription>
+						<p className="mb-2">{formatError.message}</p>
+						{formatError.suggestion && (
+							<p className="text-sm opacity-90">{formatError.suggestion}</p>
+						)}
+						{formatError.retryable && (
+							<div className="mt-3">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleFormatPrompt}
+									disabled={isFormatting}
+									className="h-8"
+								>
+									<RotateCcw className="h-3 w-3 mr-1" />
+									Try Again
+								</Button>
+							</div>
+						)}
+					</AlertDescription>
+				</Alert>
+			)}
 
 			{/* Prompt Editor */}
 			<Card>
