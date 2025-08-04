@@ -200,9 +200,11 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
               </Link>
             </Button>
           ) : story.status === 'generating' ? (
-            <Button disabled size="sm" className="w-full">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link href={`/story-status/${story.id}`}>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                View Progress
+              </Link>
             </Button>
           ) : story.status === 'failed' ? (
             <Button variant="outline" size="sm" className="w-full">
