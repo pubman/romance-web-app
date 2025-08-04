@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useStoryStatusUpdater } from "./use-story-status-updater";
 
 export interface DatabaseStory {
   id: string;
@@ -26,6 +27,7 @@ export interface DatabaseStory {
     };
   } | null;
   generation_progress: number;
+  error_message?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,14 +38,17 @@ interface UseUserStoriesReturn {
   error: string | null;
   refetch: () => void;
   isEmpty: boolean;
+  isUpdatingStatus: boolean;
+  statusError: string | null;
 }
 
 export function useUserStories(userId?: string): UseUserStoriesReturn {
   const [stories, setStories] = useState<DatabaseStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
   const supabase = createClient();
+  const { updateStoriesStatus, isUpdating: isUpdatingStatus, error: statusError } = useStoryStatusUpdater();
 
   const fetchUserStories = useCallback(async () => {
     if (!userId) {
@@ -68,7 +73,37 @@ export function useUserStories(userId?: string): UseUserStoriesReturn {
         throw new Error(fetchError.message);
       }
 
-      setStories(data || []);
+      const fetchedStories = data || [];
+      setStories(fetchedStories);
+
+      // Check status of generating stories after initial fetch
+      if (fetchedStories.length > 0) {
+        const generatingStories = fetchedStories.filter(story => story.status === 'generating');
+        if (generatingStories.length > 0) {
+          // Don't await this - let it run in background
+          updateStoriesStatus(fetchedStories).then(updates => {
+            if (updates.length > 0) {
+              // Apply updates to local state immediately
+              setStories(prevStories => 
+                prevStories.map(story => {
+                  const update = updates.find(u => u.id === story.id);
+                  if (update) {
+                    return {
+                      ...story,
+                      status: update.status,
+                      generation_progress: update.generation_progress,
+                      ...(update.error_message && { error_message: update.error_message }),
+                    };
+                  }
+                  return story;
+                })
+              );
+            }
+          }).catch(err => {
+            console.error('Background status update failed:', err);
+          });
+        }
+      }
     } catch (err) {
       console.error("Error fetching user stories:", err);
       setError(err instanceof Error ? err.message : "Failed to load stories");
@@ -76,7 +111,7 @@ export function useUserStories(userId?: string): UseUserStoriesReturn {
     } finally {
       setLoading(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, updateStoriesStatus]);
 
   const refetch = useCallback(() => {
     fetchUserStories();
@@ -92,5 +127,7 @@ export function useUserStories(userId?: string): UseUserStoriesReturn {
     error,
     refetch,
     isEmpty: !loading && stories.length === 0,
+    isUpdatingStatus,
+    statusError,
   };
 }
