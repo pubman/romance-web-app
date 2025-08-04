@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Share2, Eye, MoreHorizontal, Clock, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Heart, Share2, Eye, MoreHorizontal, Clock, AlertCircle, CheckCircle, Loader2, RefreshCw } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -207,9 +207,11 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
               </Link>
             </Button>
           ) : story.status === 'failed' ? (
-            <Button variant="outline" size="sm" className="w-full">
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Generation Failed
+            <Button asChild variant="outline" size="sm" className="w-full hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20">
+              <Link href={`/story-retry/${story.id}`}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Link>
             </Button>
           ) : (
             <Button asChild variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
