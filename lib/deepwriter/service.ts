@@ -9,6 +9,7 @@ import {
   DeepwriterJob,
   DeepwriterContent,
   DeepwriterApiConfig,
+  RomanceGenerationConfig,
 } from './types';
 
 export class DeepwriterService {
@@ -75,15 +76,17 @@ export class DeepwriterService {
   }
 
   /**
-   * Generate work from a project
+   * Generate work from a project (enhanced version)
    */
   async generateWork(
     projectId: string,
-    isDefault: boolean = true
+    options?: Omit<GenerateWorkRequest, 'projectId'>
   ): Promise<DeepwriterJob> {
     const request: GenerateWorkRequest = {
       projectId,
-      is_default: isDefault,
+      ...options,
+      // Support both legacy and new parameter names
+      is_default: options?.is_default ?? options?.isDefault ?? true,
     };
 
     const response = await this.client.post<GenerateWorkResponse>(
@@ -101,6 +104,76 @@ export class DeepwriterService {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Generate work with enhanced parameters - romance optimized
+   */
+  async generateRomanceWork(
+    projectId: string,
+    prompt: string,
+    author: string,
+    email: string,
+    config: Partial<RomanceGenerationConfig> = {}
+  ): Promise<DeepwriterJob> {
+    const {
+      enableTableOfContents = false,
+      enableTechnicalDiagrams = false,
+      useWebResearch = 'auto',
+      pageLength = 5,
+      maxPages = 10,
+      researchUrls = [],
+      questionsAndAnswers = [],
+      mode = 'deepwriter'
+    } = config;
+
+    const request: GenerateWorkRequest = {
+      projectId,
+      prompt,
+      author,
+      email,
+      outline_text: this.generateOutlineFromPrompt(),
+      has_technical_diagrams: enableTechnicalDiagrams ? 'on' : 'off',
+      has_tableofcontents: enableTableOfContents ? 'on' : 'off',
+      use_web_research: useWebResearch,
+      page_length: pageLength,
+      max_pages: maxPages,
+      mode,
+      urls_for_research: researchUrls.length > 0 ? researchUrls : undefined,
+      questions_and_answers: questionsAndAnswers.length > 0 
+        ? JSON.stringify(questionsAndAnswers) 
+        : undefined,
+      is_default: true
+    };
+
+    const response = await this.client.post<GenerateWorkResponse>(
+      '/generateWork',
+      request
+    );
+
+    return {
+      id: response.jobId,
+      projectId,
+      status: 'pending',
+      progress: 0,
+      message: response.message,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Generate outline text for better organization
+   */
+  private generateOutlineFromPrompt(): string {
+    // Return a standard romance outline structure
+    return `The story should include:
+1. Character development and introduction
+2. Building romantic tension  
+3. Conflict and obstacles
+4. Resolution and satisfying conclusion
+
+Based on the provided prompt specifications.`;
   }
 
   /**
@@ -122,6 +195,14 @@ export class DeepwriterService {
    */
   async cancelJob(jobId: string): Promise<void> {
     await this.client.delete<void>(`/jobs/${jobId}/cancel`);
+  }
+
+  /**
+   * Download PDF for a completed job
+   */
+  async downloadPdf(jobId: string): Promise<ArrayBuffer> {
+    const response = await this.client.getRaw(`/jobs/${jobId}/download/pdf`);
+    return response.arrayBuffer();
   }
 }
 

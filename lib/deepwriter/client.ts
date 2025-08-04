@@ -147,4 +147,81 @@ export class DeepwriterApiClient {
       method: 'DELETE',
     });
   }
+
+  /**
+   * Make a raw request that returns the Response object directly
+   * Useful for binary data like PDFs
+   */
+  async getRaw(endpoint: string, params?: Record<string, unknown>): Promise<Response> {
+    let url = endpoint;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    const fullUrl = `${this.config.baseURL}${url}`;
+    
+    const defaultHeaders = {
+      'Authorization': `Bearer ${this.config.apiKey}`,
+    };
+
+    const requestOptions: RequestInit = {
+      method: 'GET',
+      headers: defaultHeaders,
+    };
+
+    // Add timeout using AbortController
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+    requestOptions.signal = controller.signal;
+
+    try {
+      const response = await fetch(fullUrl, requestOptions);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        let errorData: DeepwriterApiError;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = {
+            error: 'Unknown Error',
+            message: response.statusText || 'Request failed',
+            status: response.status,
+          };
+        }
+
+        throw new DeepwriterError(
+          errorData.message || 'API request failed',
+          response.status,
+          errorData
+        );
+      }
+
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof DeepwriterError) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new DeepwriterError('Request timeout', 408, { timeout: true });
+        }
+        throw new DeepwriterError(error.message, 0, { originalError: error });
+      }
+
+      throw new DeepwriterError('Unknown error occurred', 0, { error });
+    }
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createDeepwriterService } from '@/lib/deepwriter/service';
 import { generateDeepWriterPrompt } from '@/lib/deepwriter/prompt-generator';
+import { mapStoryPreferencesToConfig } from '@/lib/deepwriter/config-mapper';
 
 interface GenerateStoryRequest {
   title: string;
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get authenticated user
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Check user credits (using existing credit system)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('credits_remaining')
+      .select('credits_remaining, credits_used')
       .eq('user_id', user.id)
       .single();
 
@@ -117,15 +118,40 @@ export async function POST(request: NextRequest) {
         title
       );
 
-      // Generate work
-      const job = await deepwriterService.generateWork(project.id);
+      // Map story preferences to enhanced DeepWriter configuration
+      const generationConfig = mapStoryPreferencesToConfig(preferences);
 
-      // Create job tracking record
+      // Generate work with enhanced parameters, with fallback to legacy mode
+      let job;
+      try {
+        job = await deepwriterService.generateRomanceWork(
+          project.id,
+          deepwriterPrompt,
+          user.email || user.id,
+          user.email || user.id,
+          generationConfig
+        );
+      } catch (enhancedError) {
+        console.warn('Enhanced generation failed, falling back to basic mode:', enhancedError);
+        
+        // Fallback to basic generation mode
+        job = await deepwriterService.generateWork(project.id, {
+          is_default: true
+        });
+      }
+
+      // Create job tracking record with enhanced metadata
       const { error: jobError } = await supabase
         .from('stories')
         .update({
           generation_job_id: job.id,
           updated_at: new Date().toISOString(),
+          // Store generation config for future reference
+          generation_metadata: {
+            config: generationConfig,
+            enhanced_mode: true,
+            fallback_used: job.message?.includes('fallback') || false,
+          },
         })
         .eq('id', story.id);
 
@@ -155,6 +181,16 @@ export async function POST(request: NextRequest) {
           id: job.id,
           status: job.status,
           progress: job.progress,
+        },
+        generation: {
+          enhanced_mode: true,
+          config: {
+            page_length: generationConfig.pageLength,
+            max_pages: generationConfig.maxPages,
+            table_of_contents: generationConfig.enableTableOfContents,
+            technical_diagrams: generationConfig.enableTechnicalDiagrams,
+            web_research: generationConfig.useWebResearch,
+          },
         },
       });
 

@@ -16,7 +16,7 @@ export async function GET(
     const { id: storyId } = params;
 
     // Get authenticated user
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
