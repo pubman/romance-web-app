@@ -31,7 +31,9 @@ export function PromptStep({
 	const [showPreferences, setShowPreferences] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isApproved, setIsApproved] = useState(false);
-	const [formatError, setFormatError] = useState<FormatPromptError | null>(null);
+	const [formatError, setFormatError] = useState<FormatPromptError | null>(
+		null
+	);
 
 	// Generate initial prompt when component mounts or use existing formatted prompt
 	useEffect(() => {
@@ -48,10 +50,10 @@ export function PromptStep({
 	const handleFormatPrompt = async () => {
 		setIsFormatting(true);
 		setFormatError(null);
-		
+
 		try {
 			const result = await formatPromptWithAPI(editedPrompt);
-			
+
 			if (result.success) {
 				setEditedPrompt(result.formattedPrompt);
 				// Show warning for mock responses
@@ -59,7 +61,8 @@ export function PromptStep({
 					setFormatError({
 						message: result.warning,
 						retryable: false,
-						suggestion: 'Configure DeepWriter API credentials for production use.'
+						suggestion:
+							"Configure DeepWriter API credentials for production use.",
 					});
 				}
 			} else {
@@ -70,7 +73,7 @@ export function PromptStep({
 			setFormatError({
 				message: "An unexpected error occurred.",
 				retryable: true,
-				suggestion: "Please try again."
+				suggestion: "Please try again.",
 			});
 		} finally {
 			setIsFormatting(false);
@@ -164,9 +167,9 @@ export function PromptStep({
 
 			{/* Error Alert */}
 			{formatError && (
-				<Alert 
-					variant={formatError.retryable ? "warning" : "destructive"} 
-					dismissible 
+				<Alert
+					variant={formatError.retryable ? "warning" : "destructive"}
+					dismissible
 					onDismiss={handleDismissError}
 				>
 					<AlertTitle>
@@ -230,7 +233,7 @@ export function PromptStep({
 					/>
 
 					<div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-						<p>{editedPrompt.length} characters</p>
+						<p>{editedPrompt?.length || "0"} characters</p>
 						<div className="flex items-center gap-2">
 							{isEditing && <p>Outline has been modified</p>}
 							{isApproved && (
