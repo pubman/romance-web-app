@@ -107,6 +107,17 @@ export class DeepwriterService {
       request
     );
 
+    // Validate that we received a job ID
+    if (!response.jobId) {
+      throw new Error(`DeepWriter API did not return a job ID. Response: ${JSON.stringify(response)}`);
+    }
+
+    console.log('DeepWriter generateWork successful:', {
+      jobId: response.jobId,
+      message: response.message,
+      projectId
+    });
+
     // Return a job object with the initial status
     return {
       id: response.jobId,
@@ -164,6 +175,22 @@ export class DeepwriterService {
       request
     );
 
+    // Validate that we received a job ID
+    if (!response.jobId) {
+      throw new Error(`DeepWriter API did not return a job ID. Response: ${JSON.stringify(response)}`);
+    }
+
+    console.log('DeepWriter generateRomanceWork successful:', {
+      jobId: response.jobId,
+      message: response.message,
+      projectId,
+      config: {
+        pageLength,
+        maxPages,
+        mode
+      }
+    });
+
     return {
       id: response.jobId,
       projectId,
@@ -193,7 +220,7 @@ Based on the provided prompt specifications.`;
    * Check the status of a generation job
    */
   async checkJobStatus(jobId: string): Promise<DeepwriterJob> {
-    return this.client.get<DeepwriterJob>(`/api/jobs/${jobId}`);
+    return this.client.get<DeepwriterJob>(`/api/getJobStatus`, { jobId });
   }
 
   /**

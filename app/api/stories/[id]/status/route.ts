@@ -13,7 +13,7 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
-    const { id: storyId } = params;
+    const { id: storyId } = await params;
 
     // Get authenticated user
     const supabase = await createClient();
@@ -60,7 +60,7 @@ export async function GET(
         story: {
           id: story.id,
           title: story.title,
-          status: story.status,
+          status: 'failed',
           progress: 0,
         },
         job: null,

@@ -22,7 +22,8 @@ export class DeepwriterApiClient {
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
-      'x-api-key': this.config.apiKey,
+      'Authorization': `Bearer ${this.config.apiKey}`,
+      'Accept': '*/*',
     };
 
     const requestOptions: RequestInit = {
@@ -39,7 +40,7 @@ export class DeepwriterApiClient {
       method: requestOptions.method || 'GET',
       headers: {
         ...requestOptions.headers,
-        'x-api-key': this.config.apiKey ? `${this.config.apiKey.substring(0, 8)}...` : 'NOT_SET'
+        'Authorization': this.config.apiKey ? `Bearer ${this.config.apiKey.substring(0, 8)}...` : 'NOT_SET'
       },
       body: requestOptions.body ? JSON.parse(requestOptions.body as string) : undefined
     });
@@ -203,7 +204,8 @@ export class DeepwriterApiClient {
     const fullUrl = `${this.config.baseURL}${url}`;
     
     const defaultHeaders = {
-      'x-api-key': this.config.apiKey,
+      'Authorization': `Bearer ${this.config.apiKey}`,
+      'Accept': '*/*',
     };
 
     const requestOptions: RequestInit = {

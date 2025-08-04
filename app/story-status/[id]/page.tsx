@@ -23,6 +23,8 @@ export default function StoryStatusPage() {
   const params = useParams();
   const storyId = params.id as string;
   
+  // For now, we'll get the jobId from the story status API
+  // In a real implementation, you might pass this from the previous page
   const { status, loading, error, refetch, isPolling } = useStoryStatus(storyId);
   const [timeElapsed, setTimeElapsed] = useState(0);
 
@@ -69,10 +71,29 @@ export default function StoryStatusPage() {
     }
   };
 
-  const getProgressMessage = (progress: number, status: string) => {
+  const getProgressMessage = (progress: number, status: string, progressStage?: string) => {
     if (status === 'completed') return "Your story is ready!";
     if (status === 'failed') return "Story generation failed";
     
+    // Use progress stage if available
+    if (progressStage) {
+      switch (progressStage) {
+        case 'initializing':
+          return "Initializing story generation...";
+        case 'planning_story':
+          return "Planning your story structure...";
+        case 'generating_work':
+          return "AI is writing your story...";
+        case 'finalizing':
+          return "Adding finishing touches...";
+        case 'draft':
+          return "Story is in draft mode";
+        default:
+          break;
+      }
+    }
+    
+    // Fallback to progress-based messages
     if (progress < 10) return "Starting story generation...";
     if (progress < 30) return "Creating characters and setting...";
     if (progress < 60) return "Writing story chapters...";
@@ -145,7 +166,7 @@ export default function StoryStatusPage() {
                 <div>
                   <CardTitle className="text-2xl font-heading">{status.story.title}</CardTitle>
                   <CardDescription className="text-lg mt-2">
-                    {getProgressMessage(status.story.progress, status.story.status)}
+                    {getProgressMessage(status.story.progress, status.story.status, status.story.progress_stage)}
                   </CardDescription>
                 </div>
                 {getStatusBadge(status.story.status)}
@@ -156,9 +177,21 @@ export default function StoryStatusPage() {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-muted-foreground">Progress</span>
-                    <span className="text-sm font-medium">{status.story.progress}%</span>
+                    <div className="text-right">
+                      <span className="text-sm font-medium">{status.story.progress}%</span>
+                      {status.story.percent_complete !== undefined && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({Math.round(status.story.percent_complete * 100)}% complete)
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <Progress value={status.story.progress} className="h-3" />
+                  {status.story.progress_stage && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Stage: {status.story.progress_stage.replace('_', ' ')}
+                    </div>
+                  )}
                 </div>
 
                 {status.story.status === 'generating' && (
@@ -214,7 +247,7 @@ export default function StoryStatusPage() {
                       </span>
                     </div>
                     <p className="text-xs text-red-700 dark:text-red-300 mb-3">
-                      Something went wrong during generation. You can try creating a new story.
+                      {status.story.error_message || "Something went wrong during generation. You can try creating a new story."}
                     </p>
                     <Button asChild variant="outline" size="sm">
                       <Link href="/create-story">Create New Story</Link>
@@ -241,10 +274,39 @@ export default function StoryStatusPage() {
                     <span className="text-muted-foreground">Status:</span>
                     <p className="capitalize">{status.job.status}</p>
                   </div>
+                  <div>
+                    <span className="text-muted-foreground">Progress Stage:</span>
+                    <p className="capitalize">{status.job.progress_stage?.replace('_', ' ')}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">BYOK:</span>
+                    <p>{status.job.is_byok ? 'Yes' : 'No'}</p>
+                  </div>
                   {status.job.message && (
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Message:</span>
                       <p>{status.job.message}</p>
+                    </div>
+                  )}
+                  
+                  {/* AI Models Section */}
+                  {status.job.models && (
+                    <div className="col-span-2 mt-4">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">AI Models</h4>
+                      <div className="grid grid-cols-1 gap-2 text-xs">
+                        <div className="flex justify-between">
+                          <span>Reasoning:</span>
+                          <span className="font-mono">{status.job.models.reasoning}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Writing:</span>
+                          <span className="font-mono">{status.job.models.writing}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Function:</span>
+                          <span className="font-mono">{status.job.models.function}</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

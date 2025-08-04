@@ -76,6 +76,13 @@ export async function POST(request: NextRequest) {
     const deepwriterPrompt = generateDeepWriterPrompt(preferences);
 
     // Create story record in database
+    console.log('Creating story record for user:', {
+      userId: user.id,
+      title,
+      genre: preferences.genre,
+      mood: preferences.mood
+    });
+
     const { data: story, error: storyError } = await supabase
       .from('stories')
       .insert({
@@ -99,6 +106,12 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.log('Story record created successfully:', {
+      storyId: story.id,
+      status: story.status,
+      title: story.title
+    });
 
     try {
       // Initialize DeepWriter service
@@ -143,6 +156,18 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // Validate job object before updating story
+      if (!job || !job.id) {
+        throw new Error('DeepWriter job creation failed - no job ID returned');
+      }
+
+      console.log('Updating story with job ID:', {
+        storyId: story.id,
+        jobId: job.id,
+        jobMessage: job.message,
+        jobStatus: job.status
+      });
+
       // Create job tracking record with enhanced metadata
       const { error: jobError } = await supabase
         .from('stories')
@@ -154,14 +179,20 @@ export async function POST(request: NextRequest) {
             config: generationConfig,
             enhanced_mode: true,
             fallback_used: job.message?.includes('fallback') || false,
+            job_created_at: job.created_at,
           },
         })
         .eq('id', story.id);
 
       if (jobError) {
         console.error('Job tracking error:', jobError);
-        // Continue anyway, we can still track the story
+        throw new Error(`Failed to update story with job ID: ${jobError.message}`);
       }
+
+      console.log('Story successfully updated with job ID:', {
+        storyId: story.id,
+        jobId: job.id
+      });
 
       // Consume user credit
       await supabase
