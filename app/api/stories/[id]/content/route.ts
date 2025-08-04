@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createDeepwriterService } from '@/lib/deepwriter/service';
 
 interface RouteParams {
   params: {
@@ -81,50 +80,44 @@ ${story.status === 'generating'
 
     // For completed stories, try to fetch actual content
     try {
-      if (story.generation_job_id) {
-        // Fetch content from DeepWriter service
-        const deepwriterService = createDeepwriterService();
-        const jobContent = await deepwriterService.getJobContent(story.generation_job_id);
-
-        // Transform DeepWriter content to markdown format
-        let markdownContent = `# ${story.title}\n\n`;
+      if (story.content_url) {
+        // Fetch content from the stored content URL
+        const contentResponse = await fetch(story.content_url);
         
-        if (jobContent.content.chapters && jobContent.content.chapters.length > 0) {
-          jobContent.content.chapters.forEach((chapter, index) => {
-            if (chapter.title && chapter.title !== story.title) {
-              markdownContent += `## Chapter ${index + 1}: ${chapter.title}\n\n`;
-            } else if (jobContent.content.chapters.length > 1) {
-              markdownContent += `## Chapter ${index + 1}\n\n`;
+        if (contentResponse.ok) {
+          const contentText = await contentResponse.text();
+          
+          // Format content with title if needed
+          let formattedContent;
+          if (contentText.trim().startsWith('#') || contentText.includes('## ')) {
+            formattedContent = contentText;
+          } else {
+            formattedContent = `# ${story.title}\n\n${contentText}`;
+          }
+
+          return NextResponse.json({
+            content: formattedContent,
+            status: story.status,
+            isGenerated: true,
+            metadata: {
+              wordCount: story.word_count || 0,
+              chapterCount: story.chapter_count || 0,
             }
-            markdownContent += `${chapter.content}\n\n`;
           });
         } else {
-          // Fallback if no chapters structure
-          markdownContent += 'Your generated story content would appear here.\n\n';
-          markdownContent += '*This is a placeholder - actual content integration depends on the DeepWriter service response format.*';
+          console.error('Failed to fetch content from content_url:', contentResponse.status);
+          // Fall through to error handling
         }
-
-        return NextResponse.json({
-          content: markdownContent,
-          status: story.status,
-          isGenerated: true,
-          metadata: {
-            wordCount: jobContent.content.metadata?.word_count || story.word_count || 0,
-            chapterCount: jobContent.content.metadata?.chapter_count || story.chapter_count || 0,
-            readingTime: jobContent.content.metadata?.reading_time || 0,
-          }
-        });
-
       } else {
-        // No generation job ID - return placeholder
+        // No content URL - return placeholder
         const fallbackContent = `# ${story.title}
 
-This story has been marked as completed but no generated content is available.
+This story has been marked as completed but no content URL is available.
 
 This might happen if:
-- The story was created before the AI generation system was implemented
+- The story was created before the content storage system was implemented
 - There was an issue with the content storage process
-- The story content is stored in a different location
+- The story content has not been properly stored yet
 
 ---
 *Word Count*: ${story.word_count || 0} words  
@@ -145,31 +138,43 @@ This might happen if:
     } catch (contentError) {
       console.error('Error fetching story content:', contentError);
       
+      // Determine if it's a content_url fetch error or other error
+      const isContentUrlError = story.content_url && contentError instanceof Error;
+      
       // Return error content but don't fail the request
       const errorContent = `# ${story.title}
 
 **Error loading story content**
 
-We encountered an issue loading your story content. This is usually temporary.
+${isContentUrlError 
+  ? `We encountered an issue loading your story content from the stored location.`
+  : `We encountered a system error while trying to load your story content.`
+}
 
-Please try:
+This is usually temporary. Please try:
 1. Refreshing the page
 2. Checking back in a few minutes
 3. Contacting support if the issue persists
 
+**Troubleshooting Information:**
+- Status: ${story.status}
+- Content URL: ${story.content_url ? 'Available' : 'Not available'}
+- Error Type: ${isContentUrlError ? 'Content fetch error' : 'System error'}
+
 ---
-*Status*: ${story.status}  
-*Word Count*: ${story.word_count || 0} words
+*Word Count*: ${story.word_count || 0} words  
+*Chapters*: ${story.chapter_count || 0}
 `;
 
       return NextResponse.json({
         content: errorContent,
         status: story.status,
         isGenerated: false,
-        error: 'Failed to load content',
+        error: isContentUrlError ? 'Content fetch failed' : 'System error',
         metadata: {
           wordCount: story.word_count || 0,
           chapterCount: story.chapter_count || 0,
+          hasContentUrl: !!story.content_url,
         }
       });
     }

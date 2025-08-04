@@ -12,11 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { useToast } from "@/components/ui/use-toast";
 import {
 	Dialog,
@@ -32,24 +27,18 @@ import {
 	Share2,
 	Heart,
 	BookOpen,
-	Download,
 	Copy,
 	Check,
 	Users,
 	Globe,
 	Lock,
-	FileText,
 	FileIcon,
 	AlertCircle,
 	CheckCircle,
 	Loader2,
-	ChevronDown,
-	ChevronUp,
 	Star,
-	Eye,
 } from "lucide-react";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
 import { UserSearch } from "@/components/user-search";
 
 interface StoryDetailsProps {
@@ -88,10 +77,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 	const [isSharing, setIsSharing] = useState(false);
 
 	// PDF viewer state
-	const [viewMode, setViewMode] = useState<"text" | "pdf">("text");
-	const [isLoadingPdf, setIsLoadingPdf] = useState(false);
 	const [pdfError, setPdfError] = useState<string>("");
-	const [isDownloadOptionsOpen, setIsDownloadOptionsOpen] = useState(false);
 
 	// Rating system state
 	const [showRatingModal, setShowRatingModal] = useState(false);
@@ -163,92 +149,9 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 		setIsPublic(!isPublic);
 	};
 
-	const downloadStory = () => {
-		const element = document.createElement("a");
-		const file = new Blob([story.content], { type: "text/plain" });
-		element.href = URL.createObjectURL(file);
-		element.download = `${story.title}.txt`;
-		document.body.appendChild(element);
-		element.click();
-		document.body.removeChild(element);
-	};
 
 	// PDF-related functions
-	const loadPdf = async () => {
-		if (!story.jobId) {
-			setPdfError("No PDF generation job available");
-			return;
-		}
 
-		setIsLoadingPdf(true);
-		setPdfError("");
-
-		try {
-			// Check if PDF is ready
-			const response = await fetch(`/api/stories/${story.id}/pdf-status`);
-			if (!response.ok) {
-				throw new Error("Failed to check PDF status");
-			}
-
-			const data = await response.json();
-			if (data.status === "completed" && data.pdfUrl) {
-				// PDF is ready, switch to PDF view
-				setViewMode("pdf");
-			} else if (data.status === "failed") {
-				throw new Error(data.error || "PDF generation failed");
-			} else {
-				throw new Error("PDF is not ready yet");
-			}
-		} catch (error) {
-			console.error("Error loading PDF:", error);
-			setPdfError(
-				error instanceof Error ? error.message : "Failed to load PDF"
-			);
-		} finally {
-			setIsLoadingPdf(false);
-		}
-	};
-
-	const downloadPdf = async () => {
-		if (!story.jobId) {
-			toast({
-				title: "Download Failed",
-				description: "No PDF available for download",
-				variant: "destructive",
-			});
-			return;
-		}
-
-		try {
-			const response = await fetch(`/api/stories/${story.id}/download-pdf`);
-			if (!response.ok) {
-				throw new Error("Failed to download PDF");
-			}
-
-			const blob = await response.blob();
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `${story.title}.pdf`;
-			document.body.appendChild(a);
-			a.click();
-			window.URL.revokeObjectURL(url);
-			document.body.removeChild(a);
-
-			toast({
-				title: "Download Started",
-				description: "Your PDF is being downloaded",
-			});
-		} catch (error) {
-			console.error("Error downloading PDF:", error);
-			toast({
-				title: "Download Failed",
-				description:
-					error instanceof Error ? error.message : "Failed to download PDF",
-				variant: "destructive",
-			});
-		}
-	};
 
 	const submitRating = async () => {
 		if (!story.jobId || rating === 0) return;
@@ -302,13 +205,10 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 	};
 
 	// Helper variables
-	console.log(story);
 	const isFailedOrModerated =
 		story.jobStatus === "failed" || story.jobStatus === "moderated";
 	const hasPdfCapability = Boolean(story.pdfUrl);
-	const pdfUrl =
-		story.pdfUrl ||
-		(story.jobId ? `/api/stories/${story.id}/preview-pdf` : null);
+	const pdfUrl = story.pdfUrl;
 
 	// Status configuration
 	const statusConfig = {
@@ -428,55 +328,6 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 									</div>
 
 									<div className="flex items-center gap-2">
-										{hasPdfCapability && (
-											<>
-												<div className="flex items-center rounded-lg border border-input bg-background">
-													<Button
-														variant={viewMode === "text" ? "default" : "ghost"}
-														size="sm"
-														onClick={() => setViewMode("text")}
-														className="rounded-r-none"
-													>
-														<FileText className="mr-2 h-4 w-4" />
-														Text
-													</Button>
-													<Button
-														variant={viewMode === "pdf" ? "default" : "ghost"}
-														size="sm"
-														onClick={() => {
-															if (pdfUrl) {
-																setViewMode("pdf");
-															} else {
-																loadPdf();
-															}
-														}}
-														className="rounded-l-none"
-														disabled={isLoadingPdf}
-													>
-														{isLoadingPdf ? (
-															<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-														) : (
-															<Eye className="mr-2 h-4 w-4" />
-														)}
-														PDF
-													</Button>
-												</div>
-
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={downloadPdf}
-												>
-													<Download className="mr-2 h-4 w-4" />
-													PDF
-												</Button>
-											</>
-										)}
-
-										<Button variant="outline" size="sm" onClick={downloadStory}>
-											<Download className="mr-2 h-4 w-4" />
-											Text
-										</Button>
 
 										<Dialog>
 											<DialogTrigger asChild>
@@ -576,101 +427,66 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 							</CardHeader>
 
 							<CardContent>
-								{viewMode === "text" ? (
-									<div className="prose prose-lg max-w-none dark:prose-invert">
-										<ReactMarkdown>{story.content}</ReactMarkdown>
-									</div>
-								) : viewMode === "pdf" ? (
-									<div className="min-h-[600px]">
-										{isFailedOrModerated ? (
-											<div className="flex flex-col items-center justify-center p-8 text-center">
-												<AlertCircle
-													className={`mb-4 h-12 w-12 ${
-														story.jobStatus === "failed"
-															? "text-red-500"
-															: "text-yellow-500"
-													}`}
-												/>
-												<h3 className="mb-2 text-lg font-medium">
-													{story.jobStatus === "failed"
-														? "PDF Generation Failed"
-														: "PDF Generation Moderated"}
-												</h3>
-												<p className="mb-4 text-sm text-muted-foreground">
-													{story.errorMessage ||
-														"No additional error details available."}
-												</p>
-												<Button
-													onClick={() => setViewMode("text")}
-													variant="outline"
-													size="sm"
-												>
-													View Text Version
-												</Button>
-											</div>
-										) : pdfError ? (
-											<div className="flex flex-col items-center justify-center p-8 text-center">
-												<AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-												<h3 className="mb-2 text-lg font-medium">
-													Failed to Load PDF
-												</h3>
-												<p className="mb-4 text-sm text-muted-foreground">
-													{pdfError}
-												</p>
-												<div className="flex gap-2">
-													<Button onClick={loadPdf} variant="outline" size="sm">
-														Try Again
-													</Button>
-													<Button
-														onClick={() => setViewMode("text")}
-														variant="outline"
-														size="sm"
-													>
-														View Text Version
-													</Button>
-												</div>
-											</div>
-										) : isLoadingPdf ? (
-											<div className="flex flex-col items-center justify-center p-8 text-center">
-												<Loader2 className="mb-4 h-12 w-12 animate-spin text-muted-foreground" />
-												<h3 className="mb-2 text-lg font-medium">
-													Loading PDF
-												</h3>
-												<p className="text-sm text-muted-foreground">
-													Please wait while we prepare your document...
-												</p>
-											</div>
-										) : pdfUrl ? (
-											<div className="relative">
-												<iframe
-													src={pdfUrl}
-													className="h-[600px] w-full rounded-lg border"
-													title="Story PDF"
-													onError={() => setPdfError("Failed to display PDF")}
-												/>
-											</div>
-										) : (
-											<div className="flex flex-col items-center justify-center p-8 text-center">
-												<FileText className="mb-4 h-12 w-12 text-muted-foreground" />
-												<h3 className="mb-2 text-lg font-medium">
-													PDF Not Available
-												</h3>
-												<p className="mb-4 text-sm text-muted-foreground">
-													{hasPdfCapability
-														? "The PDF version is being generated or is not ready yet."
-														: "PDF generation is not available for this story."}
-												</p>
-												<Button
-													onClick={() => setViewMode("text")}
-													variant="outline"
-													size="sm"
-												>
-													View Text Version
-												</Button>
-											</div>
-										)}
-									</div>
-								) : null}
+								<div className="min-h-[600px]">
+									{isFailedOrModerated ? (
+										<div className="flex flex-col items-center justify-center p-8 text-center">
+											<AlertCircle
+												className={`mb-4 h-12 w-12 ${
+													story.jobStatus === "failed"
+														? "text-red-500"
+														: "text-yellow-500"
+												}`}
+											/>
+											<h3 className="mb-2 text-lg font-medium">
+												{story.jobStatus === "failed"
+													? "PDF Generation Failed"
+													: "PDF Generation Moderated"}
+											</h3>
+											<p className="mb-4 text-sm text-muted-foreground">
+												{story.errorMessage ||
+													"No additional error details available."}
+											</p>
+										</div>
+									) : pdfError ? (
+										<div className="flex flex-col items-center justify-center p-8 text-center">
+											<AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+											<h3 className="mb-2 text-lg font-medium">
+												Failed to Load PDF
+											</h3>
+											<p className="mb-4 text-sm text-muted-foreground">
+												{pdfError}
+											</p>
+											<Button 
+												onClick={() => window.location.reload()} 
+												variant="outline" 
+												size="sm"
+											>
+												Try Again
+											</Button>
+										</div>
+									) : pdfUrl ? (
+										<div className="relative">
+											<iframe
+												src={pdfUrl}
+												className="h-[600px] w-full rounded-lg border"
+												title="Story PDF"
+												onError={() => setPdfError("Failed to display PDF")}
+											/>
+										</div>
+									) : (
+										<div className="flex flex-col items-center justify-center p-8 text-center">
+											<AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
+											<h3 className="mb-2 text-lg font-medium">
+												PDF Not Available
+											</h3>
+											<p className="mb-4 text-sm text-muted-foreground">
+												{hasPdfCapability
+													? "The PDF version is being generated or is not ready yet."
+													: "PDF generation is not available for this story."}
+											</p>
+										</div>
+									)}
+								</div>
 							</CardContent>
 						</Card>
 					</div>
@@ -764,101 +580,6 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 							</Card>
 						)}
 
-						{/* Enhanced Download Options */}
-						{hasPdfCapability && (
-							<Card className="bg-card/80 backdrop-blur-sm">
-								<Collapsible
-									open={isDownloadOptionsOpen}
-									onOpenChange={setIsDownloadOptionsOpen}
-								>
-									<CollapsibleTrigger asChild>
-										<div className="flex cursor-pointer items-center justify-between rounded-t-lg p-4 hover:bg-muted/50">
-											<h3 className="text-base font-medium">
-												Additional Download Options
-											</h3>
-											{isDownloadOptionsOpen ? (
-												<ChevronUp className="h-4 w-4" />
-											) : (
-												<ChevronDown className="h-4 w-4" />
-											)}
-										</div>
-									</CollapsibleTrigger>
-									<CollapsibleContent>
-										<CardContent className="space-y-3 pt-0">
-											<div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
-												<div className="flex items-center gap-2">
-													<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-														<FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-													</div>
-													<div>
-														<h4 className="text-sm font-medium">
-															Enhanced PDF
-														</h4>
-														<p className="text-xs text-muted-foreground">
-															Professional formatted version
-														</p>
-													</div>
-												</div>
-												<Button
-													onClick={downloadPdf}
-													disabled={!pdfUrl}
-													size="sm"
-													variant="outline"
-												>
-													Download
-												</Button>
-											</div>
-
-											<div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
-												<div className="flex items-center gap-2">
-													<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
-														<FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-													</div>
-													<div>
-														<h4 className="text-sm font-medium">Plain Text</h4>
-														<p className="text-xs text-muted-foreground">
-															Simple text file format
-														</p>
-													</div>
-												</div>
-												<Button
-													onClick={downloadStory}
-													size="sm"
-													variant="outline"
-												>
-													Download
-												</Button>
-											</div>
-
-											{hasPdfCapability && pdfUrl && (
-												<div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
-													<div className="flex items-center gap-2">
-														<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-															<Star className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-														</div>
-														<div>
-															<h4 className="text-sm font-medium">
-																Rate & Feedback
-															</h4>
-															<p className="text-xs text-muted-foreground">
-																Share your thoughts on the PDF
-															</p>
-														</div>
-													</div>
-													<Button
-														onClick={() => setShowRatingModal(true)}
-														size="sm"
-														variant="outline"
-													>
-														Rate
-													</Button>
-												</div>
-											)}
-										</CardContent>
-									</CollapsibleContent>
-								</Collapsible>
-							</Card>
-						)}
 
 						<div className="space-y-3">
 							<Button className="w-full" variant="outline">

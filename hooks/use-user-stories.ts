@@ -8,6 +8,7 @@ export interface DatabaseStory {
   cover_image_url: string | null;
   status: 'draft' | 'generating' | 'completed' | 'failed';
   is_public: boolean;
+  content_url: string | null;
   word_count: number;
   chapter_count: number;
   story_preferences: {
@@ -58,19 +59,7 @@ export function useUserStories(userId?: string): UseUserStoriesReturn {
       const { data, error: fetchError } = await supabase
         .from("stories")
         .select(`
-          id,
-          title,
-          description,
-          cover_image_url,
-          status,
-          is_public,
-          word_count,
-          chapter_count,
-          story_preferences,
-          wizard_data,
-          generation_progress,
-          created_at,
-          updated_at
+         *
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false }); // Most recent first
