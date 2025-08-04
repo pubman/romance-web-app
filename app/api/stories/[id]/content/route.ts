@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createDeepwriterService } from '@/lib/deepwriter/service';
 
 interface RouteParams {
   params: {
@@ -78,46 +79,93 @@ ${story.status === 'generating'
       });
     }
 
-    // For completed stories, try to fetch actual content
+    // For completed stories, try to fetch actual content from DeepWriter
     try {
-      if (story.content_url) {
-        // Fetch content from the stored content URL
-        const contentResponse = await fetch(story.content_url);
+      if (story.generation_job_id) {
+        console.log(`Fetching content for job ID: ${story.generation_job_id}`);
         
-        if (contentResponse.ok) {
-          const contentText = await contentResponse.text();
+        // Create DeepWriter service
+        const deepwriterService = createDeepwriterService();
+        
+        // First, check job status to ensure it's ready
+        try {
+          const jobStatus = await deepwriterService.checkJobStatus(story.generation_job_id);
+          console.log(`Job status for ${story.generation_job_id}:`, jobStatus.status);
           
-          // Format content with title if needed
-          let formattedContent;
-          if (contentText.trim().startsWith('#') || contentText.includes('## ')) {
-            formattedContent = contentText;
-          } else {
-            formattedContent = `# ${story.title}\n\n${contentText}`;
-          }
+          if (jobStatus.status !== 'completed') {
+            return NextResponse.json({
+              content: `# ${story.title}
 
-          return NextResponse.json({
-            content: formattedContent,
-            status: story.status,
-            isGenerated: true,
-            metadata: {
-              wordCount: story.word_count || 0,
-              chapterCount: story.chapter_count || 0,
+**Job Status**: ${jobStatus.status.charAt(0).toUpperCase() + jobStatus.status.slice(1)}
+
+${jobStatus.status === 'processing' || jobStatus.status === 'pending'
+  ? `Your story is currently being generated (${jobStatus.progress || 0}% complete). Please check back in a few minutes!`
+  : jobStatus.status === 'failed'
+  ? `Story generation failed: ${jobStatus.error || 'Unknown error'}`
+  : `Job status: ${jobStatus.status}`
+}
+
+---
+*Word Count*: ${story.word_count || 0} words  
+*Chapters*: ${story.chapter_count || 0}`,
+              status: jobStatus.status,
+              isGenerated: false,
+              metadata: {
+                wordCount: story.word_count || 0,
+                chapterCount: story.chapter_count || 0,
+                jobProgress: jobStatus.progress || 0,
+              }
+            });
+          }
+        } catch (statusError) {
+          console.error(`Failed to check job status for ${story.generation_job_id}:`, statusError);
+          // Continue to try fetching content directly
+        }
+
+        // Fetch content from DeepWriter service
+        const jobContent = await deepwriterService.getJobContent(story.generation_job_id);
+        console.log(`Successfully fetched content for job ${story.generation_job_id}`);
+
+        // Transform DeepWriter content to markdown format
+        let markdownContent = `# ${story.title}\n\n`;
+        
+        if (jobContent.content.chapters && jobContent.content.chapters.length > 0) {
+          jobContent.content.chapters.forEach((chapter, index) => {
+            if (chapter.title && chapter.title !== story.title) {
+              markdownContent += `## Chapter ${index + 1}: ${chapter.title}\n\n`;
+            } else if (jobContent.content.chapters.length > 1) {
+              markdownContent += `## Chapter ${index + 1}\n\n`;
             }
+            markdownContent += `${chapter.content}\n\n`;
           });
         } else {
-          console.error('Failed to fetch content from content_url:', contentResponse.status);
-          // Fall through to error handling
+          // Fallback if no chapters structure
+          markdownContent += 'Your generated story content would appear here.\n\n';
+          markdownContent += '*Content structure may vary based on generation parameters.*';
         }
+
+        return NextResponse.json({
+          content: markdownContent,
+          status: story.status,
+          isGenerated: true,
+          metadata: {
+            wordCount: jobContent.content.metadata?.word_count || story.word_count || 0,
+            chapterCount: jobContent.content.metadata?.chapter_count || story.chapter_count || 0,
+            readingTime: jobContent.content.metadata?.reading_time || 0,
+            generatedAt: jobContent.content.metadata?.generated_at,
+          }
+        });
+
       } else {
-        // No content URL - return placeholder
+        // No generation job ID - return placeholder
         const fallbackContent = `# ${story.title}
 
-This story has been marked as completed but no content URL is available.
+This story has been marked as completed but no generation job ID is available.
 
 This might happen if:
-- The story was created before the content storage system was implemented
-- There was an issue with the content storage process
-- The story content has not been properly stored yet
+- The story was created before the AI generation system was implemented
+- There was an issue with the generation process
+- The job ID was not properly stored
 
 ---
 *Word Count*: ${story.word_count || 0} words  
@@ -136,30 +184,37 @@ This might happen if:
       }
 
     } catch (contentError) {
-      console.error('Error fetching story content:', contentError);
+      console.error('Error fetching story content from DeepWriter:', contentError);
       
-      // Determine if it's a content_url fetch error or other error
-      const isContentUrlError = story.content_url && contentError instanceof Error;
+      // Determine error type and message
+      const isDeepwriterError = contentError && typeof contentError === 'object' && 'status' in contentError;
+      const errorStatus = isDeepwriterError ? (contentError as any).status : null;
+      const errorMessage = contentError instanceof Error ? contentError.message : 'Unknown error';
       
       // Return error content but don't fail the request
       const errorContent = `# ${story.title}
 
-**Error loading story content**
+**Error loading story content from DeepWriter**
 
-${isContentUrlError 
-  ? `We encountered an issue loading your story content from the stored location.`
-  : `We encountered a system error while trying to load your story content.`
+${errorStatus === 404 
+  ? `The generation job (ID: ${story.generation_job_id}) was not found on DeepWriter servers. This may happen if the job has expired or was cleaned up.`
+  : errorStatus === 401 || errorStatus === 403
+  ? `Authentication issue with DeepWriter API. Please check API configuration.`
+  : errorStatus
+  ? `DeepWriter API returned error ${errorStatus}: ${errorMessage}`
+  : `System error while contacting DeepWriter: ${errorMessage}`
 }
 
-This is usually temporary. Please try:
-1. Refreshing the page
-2. Checking back in a few minutes
-3. Contacting support if the issue persists
+**Troubleshooting Steps:**
+1. Refresh the page to retry
+2. Check back in a few minutes if the job is still processing
+3. Contact support if the issue persists
 
-**Troubleshooting Information:**
-- Status: ${story.status}
-- Content URL: ${story.content_url ? 'Available' : 'Not available'}
-- Error Type: ${isContentUrlError ? 'Content fetch error' : 'System error'}
+**Technical Details:**
+- Story Status: ${story.status}
+- Generation Job ID: ${story.generation_job_id || 'Not available'}
+- Error Type: ${errorStatus ? `HTTP ${errorStatus}` : 'Network/System error'}
+- DeepWriter API: ${process.env.DEEPWRITER_API_URL || 'Not configured'}
 
 ---
 *Word Count*: ${story.word_count || 0} words  
@@ -170,11 +225,17 @@ This is usually temporary. Please try:
         content: errorContent,
         status: story.status,
         isGenerated: false,
-        error: isContentUrlError ? 'Content fetch failed' : 'System error',
+        error: errorStatus === 404 ? 'Job not found' : errorStatus ? `API error ${errorStatus}` : 'System error',
         metadata: {
           wordCount: story.word_count || 0,
           chapterCount: story.chapter_count || 0,
-          hasContentUrl: !!story.content_url,
+          hasJobId: !!story.generation_job_id,
+          errorDetails: {
+            status: errorStatus,
+            message: errorMessage,
+            apiUrl: process.env.DEEPWRITER_API_URL,
+            hasApiKey: !!process.env.DEEPWRITER_API_KEY,
+          }
         }
       });
     }

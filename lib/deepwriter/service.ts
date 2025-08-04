@@ -180,28 +180,37 @@ Based on the provided prompt specifications.`;
    * Check the status of a generation job
    */
   async checkJobStatus(jobId: string): Promise<DeepwriterJob> {
-    return this.client.get<DeepwriterJob>(`/jobs/${jobId}/status`);
+    return this.client.get<DeepwriterJob>(`/api/jobs/${jobId}`);
   }
 
   /**
    * Get the content of a completed job
    */
   async getJobContent(jobId: string): Promise<DeepwriterContent> {
-    return this.client.get<DeepwriterContent>(`/jobs/${jobId}/content`);
+    return this.client.get<DeepwriterContent>(`/api/jobs/${jobId}/content`);
   }
 
   /**
    * Cancel a running job
    */
   async cancelJob(jobId: string): Promise<void> {
-    await this.client.delete<void>(`/jobs/${jobId}/cancel`);
+    await this.client.delete<void>(`/api/jobs/${jobId}/cancel`);
   }
 
   /**
-   * Download PDF for a completed job
+   * Preview PDF for a completed job (for iframe display)
+   */
+  async previewPdf(jobId: string): Promise<ArrayBuffer> {
+    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`);
+    return response.arrayBuffer();
+  }
+
+  /**
+   * Download PDF for a completed job (for file downloads)
    */
   async downloadPdf(jobId: string): Promise<ArrayBuffer> {
-    const response = await this.client.getRaw(`/jobs/${jobId}/download/pdf`);
+    // Using the same endpoint for now, but could be different in the future
+    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`);
     return response.arrayBuffer();
   }
 }

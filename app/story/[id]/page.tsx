@@ -10,7 +10,9 @@ interface StoryPageProps {
 // Transform DatabaseStory to StoryDetailsProps format
 function transformStoryData(
 	dbStory: DatabaseStory & { generation_job_id?: string },
-	content: string
+	content: string,
+	pdfUrl: string | null,
+	hasPdfCapability: boolean
 ): unknown {
 	// Extract character names from wizard_data
 	const characters = [];
@@ -33,8 +35,6 @@ function transformStoryData(
 		dbStory.wizard_data?.setting?.atmosphere ||
 		"Unknown Location";
 
-	// Use content_url directly as PDF URL
-	const pdfUrl = dbStory.status === "completed" ? dbStory.content_url : null;
 
 	// Estimate page count based on word count (roughly 250 words per page)
 	const estimatedPageCount =
@@ -117,9 +117,33 @@ export default async function StoryPage({ params }: StoryPageProps) {
 	// Since we're only showing PDF view, we don't need to fetch text content
 	const content = ""; // Placeholder - not used in PDF-only view
 
+	// Fetch PDF data directly from DeepWriter for completed stories
+	let pdfUrl = null;
+	const hasPdfCapability = Boolean(dbStory.generation_job_id);
+	if (hasPdfCapability && dbStory.status === "completed") {
+		try {
+			const { createDeepwriterService } = await import('@/lib/deepwriter/service');
+			const deepwriterService = createDeepwriterService();
+			
+			console.log(`Fetching PDF data for job ID: ${dbStory.generation_job_id}`);
+			const pdfArrayBuffer = await deepwriterService.previewPdf(dbStory.generation_job_id);
+			
+			// Convert ArrayBuffer to base64 data URL
+			const pdfBase64 = Buffer.from(pdfArrayBuffer).toString('base64');
+			pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
+			
+			console.log(`Successfully fetched PDF data for job ${dbStory.generation_job_id}`);
+		} catch (pdfError) {
+			console.error('Error fetching PDF data from DeepWriter:', pdfError);
+			// pdfUrl remains null, will show error in component
+		}
+	}
+
 	const transformedStory = transformStoryData(
 		dbStory as DatabaseStory,
-		content
+		content,
+		pdfUrl,
+		hasPdfCapability
 	);
 
 	return <StoryDetails story={transformedStory} />;

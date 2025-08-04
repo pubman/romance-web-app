@@ -57,24 +57,71 @@ export async function GET(
     }
 
     try {
+      console.log(`Fetching PDF for job ID: ${story.generation_job_id}`);
+      
       // Get PDF from DeepWriter service
       const deepwriterService = createDeepwriterService();
-      const pdfResponse = await deepwriterService.downloadPdf(story.generation_job_id);
+      
+      // First check job status
+      try {
+        const jobStatus = await deepwriterService.checkJobStatus(story.generation_job_id);
+        console.log(`PDF job status for ${story.generation_job_id}:`, jobStatus.status);
+        
+        if (jobStatus.status !== 'completed') {
+          return NextResponse.json(
+            { 
+              error: `PDF not ready - job status: ${jobStatus.status}`,
+              details: {
+                status: jobStatus.status,
+                progress: jobStatus.progress || 0,
+                message: jobStatus.message
+              }
+            },
+            { status: 202 } // Accepted but not ready
+          );
+        }
+      } catch (statusError) {
+        console.error(`Failed to check PDF job status for ${story.generation_job_id}:`, statusError);
+        // Continue to try downloading PDF directly
+      }
+
+      const pdfResponse = await deepwriterService.previewPdf(story.generation_job_id);
+      console.log(`Successfully fetched PDF for job ${story.generation_job_id}`);
 
       // Return PDF with inline disposition for iframe viewing
       return new NextResponse(pdfResponse, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': 'inline; filename="story.pdf"',
+          'Content-Disposition': `inline; filename="${story.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf"`,
           'Cache-Control': 'private, max-age=3600', // Cache for 1 hour
         },
       });
 
     } catch (deepwriterError) {
       console.error('DeepWriter PDF fetch error:', deepwriterError);
+      
+      // Determine error type for better user feedback
+      const errorStatus = deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError
+        ? (deepwriterError as any).status 
+        : null;
+      const errorMessage = deepwriterError instanceof Error ? deepwriterError.message : 'Unknown error';
+      
       return NextResponse.json(
-        { error: 'Failed to fetch PDF from generation service' },
-        { status: 503 }
+        { 
+          error: errorStatus === 404 
+            ? 'PDF not found - job may have expired or been cleaned up'
+            : errorStatus === 401 || errorStatus === 403
+            ? 'Authentication issue with DeepWriter API'
+            : 'Failed to fetch PDF from generation service',
+          details: {
+            jobId: story.generation_job_id,
+            status: errorStatus,
+            message: errorMessage,
+            apiUrl: process.env.DEEPWRITER_API_URL,
+            hasApiKey: !!process.env.DEEPWRITER_API_KEY,
+          }
+        },
+        { status: errorStatus || 503 }
       );
     }
 
