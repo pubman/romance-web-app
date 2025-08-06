@@ -283,7 +283,9 @@ Based on the provided prompt specifications.`;
    * Preview PDF for a completed job (for iframe display)
    */
   async previewPdf(jobId: string, customHeaders?: Record<string, string>): Promise<ArrayBuffer> {
-    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`, undefined, customHeaders);
+    const response = await this.client.getRaw(`/api/previewPdf/${jobId}`, undefined, {
+      'X-API-Key': this.client['config']?.apiKey || ''
+    });
     return response.arrayBuffer();
   }
 
