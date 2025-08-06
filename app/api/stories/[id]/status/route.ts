@@ -42,32 +42,25 @@ export async function GET(
       );
     }
 
-    // If story is already completed or failed, return current status
+    // If story is already completed or failed, return current status in flat format
     if (story.status === 'completed' || story.status === 'failed') {
       return NextResponse.json({
-        story: {
-          id: story.id,
-          title: story.title,
-          status: story.status,
-          progress: story.generation_progress,
-          progress_stage: story.status,
-          percent_complete: story.status === 'completed' ? 1 : (story.generation_progress || 0) / 100,
-          error_message: story.status === 'failed' ? 'Story generation failed' : null,
-        },
-        job: story.generation_job_id ? {
-          id: story.generation_job_id,
-          status: story.status,
-          progress: story.generation_progress,
-          progress_stage: story.status,
-          message: story.status === 'completed' ? 'Story completed' : 'Story failed',
-          models: {
-            reasoning: 'google/gemini-2.5-flash-001',
-            writing: 'google/gemini-2.5-flash-001',
-            function: 'google/gemini-2.5-flash-001',
-          },
-          is_byok: false,
-          is_starred: false,
-        } : null,
+        id: story.generation_job_id || story.id,
+        user_id: user.id,
+        project_id: story.id,
+        status: story.status,
+        progress: story.generation_progress || (story.status === 'completed' ? 100 : 0),
+        progress_stage: story.status,
+        percent_complete: story.status === 'completed' ? 1 : (story.generation_progress || 0) / 100,
+        title: story.title,
+        is_byok: false,
+        reasoning_model: 'google/gemini-2.5-flash-001',
+        writing_model: 'google/gemini-2.5-flash-001', 
+        function_model: 'google/gemini-2.5-flash-001',
+        error_message: story.status === 'failed' ? 'Story generation failed' : null,
+        is_starred: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
     }
 
@@ -77,16 +70,22 @@ export async function GET(
     // If no job ID available, story is in draft state
     if (!effectiveJobId) {
       return NextResponse.json({
-        story: {
-          id: story.id,
-          title: story.title,
-          status: 'failed',
-          progress: 0,
-          progress_stage: 'failed',
-          percent_complete: 0,
-          error_message: 'No job ID available'
-        },
-        job: null,
+        id: story.id,
+        user_id: user.id,
+        project_id: story.id,
+        status: 'failed',
+        progress: 0,
+        progress_stage: 'failed',
+        percent_complete: 0,
+        title: story.title,
+        is_byok: false,
+        reasoning_model: 'google/gemini-2.5-flash-001',
+        writing_model: 'google/gemini-2.5-flash-001',
+        function_model: 'google/gemini-2.5-flash-001',
+        error_message: 'No job ID available',
+        is_starred: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
     }
 
@@ -150,61 +149,47 @@ export async function GET(
           .eq('id', storyId);
       }
 
-      // Return response in expected format
+      // Return response in flat format (matching DeepWriter API structure)
       return NextResponse.json({
-        story: {
-          id: story.id,
-          title: story.title || job.title,
-          status: newStatus,
-          progress: newProgress,
-          progress_stage: job.progress_stage || 'generating_work',
-          percent_complete: job.percent_complete || (newProgress / 100),
-          error_message: job.error_message || null,
-        },
-        job: {
-          id: job.id,
-          status: job.status,
-          progress: newProgress,
-          progress_stage: job.progress_stage || 'generating_work',
-          message: job.message,
-          models: {
-            reasoning: job.reasoning_model || 'google/gemini-2.5-flash-001',
-            writing: job.writing_model || 'google/gemini-2.5-flash-001', 
-            function: job.function_model || 'google/gemini-2.5-flash-001',
-          },
-          is_byok: job.is_byok || false,
-          is_starred: job.is_starred || false,
-        },
+        id: job.id,
+        user_id: job.user_id || user.id,
+        project_id: job.project_id || story.id,
+        status: job.status,
+        progress: newProgress,
+        progress_stage: job.progress_stage || 'generating_work',
+        percent_complete: job.percent_complete || (newProgress / 100),
+        title: story.title || job.title,
+        is_byok: job.is_byok || false,
+        reasoning_model: job.reasoning_model || 'google/gemini-2.5-flash-001',
+        writing_model: job.writing_model || 'google/gemini-2.5-flash-001',
+        function_model: job.function_model || 'google/gemini-2.5-flash-001',
+        error_message: job.error_message || null,
+        is_starred: job.is_starred || false,
+        created_at: job.created_at || new Date().toISOString(),
+        updated_at: job.updated_at || new Date().toISOString(),
       });
 
     } catch (deepwriterError) {
       console.error('DeepWriter status check error:', deepwriterError);
       
-      // If DeepWriter API is down, return cached status
+      // If DeepWriter API is down, return cached status in flat format
       return NextResponse.json({
-        story: {
-          id: story.id,
-          title: story.title,
-          status: story.status,
-          progress: story.generation_progress,
-          progress_stage: 'unknown',
-          percent_complete: (story.generation_progress || 0) / 100,
-          error_message: 'Unable to check status',
-        },
-        job: effectiveJobId ? {
-          id: effectiveJobId,
-          status: 'unknown',
-          progress: story.generation_progress,
-          progress_stage: 'unknown',
-          message: 'Unable to check status',
-          models: {
-            reasoning: 'google/gemini-2.5-flash-001',
-            writing: 'google/gemini-2.5-flash-001',
-            function: 'google/gemini-2.5-flash-001',
-          },
-          is_byok: false,
-          is_starred: false,
-        } : null,
+        id: effectiveJobId || story.id,
+        user_id: user.id,
+        project_id: story.id,
+        status: story.status,
+        progress: story.generation_progress || 0,
+        progress_stage: 'unknown',
+        percent_complete: (story.generation_progress || 0) / 100,
+        title: story.title,
+        is_byok: false,
+        reasoning_model: 'google/gemini-2.5-flash-001',
+        writing_model: 'google/gemini-2.5-flash-001',
+        function_model: 'google/gemini-2.5-flash-001',
+        error_message: 'Unable to check status',
+        is_starred: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
     }
 

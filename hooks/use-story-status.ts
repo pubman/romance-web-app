@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-interface JobStatus {
+interface StoryStatus {
   id: string;
   user_id: string;
   project_id: string;
@@ -18,32 +18,6 @@ interface JobStatus {
   is_starred: boolean;
   created_at: string;
   updated_at: string;
-}
-
-interface StoryStatus {
-  story: {
-    id: string;
-    title: string;
-    status: 'draft' | 'generating' | 'completed' | 'failed';
-    progress: number;
-    progress_stage: string;
-    percent_complete: number;
-    error_message?: string | null;
-  };
-  job: {
-    id: string;
-    status: string;
-    progress: number;
-    progress_stage: string;
-    message?: string;
-    models: {
-      reasoning: string;
-      writing: string;
-      function: string;
-    };
-    is_byok: boolean;
-    is_starred: boolean;
-  } | null;
 }
 
 interface UseStoryStatusReturn {
@@ -105,7 +79,9 @@ export function useStoryStatus(storyId: string, jobId?: string): UseStoryStatusR
       setError(null);
 
       // Auto-stop polling if story is completed or failed
-      if (data.story.status === 'completed' || data.story.status === 'failed') {
+      // Map 'processing' to 'generating' for internal consistency
+      const mappedStatus = data.status === 'processing' ? 'generating' : data.status;
+      if (mappedStatus === 'completed' || mappedStatus === 'failed') {
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
@@ -135,7 +111,8 @@ export function useStoryStatus(storyId: string, jobId?: string): UseStoryStatusR
     }
 
     // Don't start polling if story is already completed or failed
-    if (status?.story.status === 'completed' || status?.story.status === 'failed') {
+    const mappedStatus = status?.status === 'processing' ? 'generating' : status?.status;
+    if (mappedStatus === 'completed' || mappedStatus === 'failed') {
       return;
     }
 
@@ -148,7 +125,7 @@ export function useStoryStatus(storyId: string, jobId?: string): UseStoryStatusR
     pollingIntervalRef.current = setInterval(() => {
       fetchStatus();
     }, interval);
-  }, [fetchStatus, status?.story.status]);
+  }, [fetchStatus, status?.status]);
 
   const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
@@ -174,10 +151,11 @@ export function useStoryStatus(storyId: string, jobId?: string): UseStoryStatusR
 
   // Auto-start polling for generating stories
   useEffect(() => {
-    if (status?.story.status === 'generating' && !isPolling) {
+    const mappedStatus = status?.status === 'processing' ? 'generating' : status?.status;
+    if (mappedStatus === 'generating' && !isPolling) {
       startPolling();
     }
-  }, [status?.story.status, isPolling, startPolling]);
+  }, [status?.status, isPolling, startPolling]);
 
   return {
     status,
