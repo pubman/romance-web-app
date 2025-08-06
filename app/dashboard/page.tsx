@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { StoryGrid } from "@/components/story-grid";
 import { CreateStoryButton } from "@/components/create-story-button";
-import { CurrentlyReading } from "@/components/currently-reading";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useUserStories } from "@/hooks/use-user-stories";
 import {
@@ -21,6 +19,7 @@ import { BuyCreditsCta } from "@/components/buy-credits-cta";
 import { useGuest } from "@/contexts/guest-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { JobStatusTest } from "@/components/job-status-test";
 import Link from "next/link";
 
 // Placeholder data for guests
@@ -271,6 +270,13 @@ export default function DashboardPage() {
 						<p className="text-sm text-muted-foreground">Stories in progress</p>
 					</div>
 				</div>
+
+				{/* Job Status Test - Only show for authenticated users */}
+				{isAuthenticated && (
+					<div className="mb-8">
+						<JobStatusTest />
+					</div>
+				)}
 
 				{/*
         // TODO: Add back in when we want to show the currently reading stories

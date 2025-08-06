@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createDeepwriterService } from '@/lib/deepwriter/service';
 
 interface RouteParams {
   params: {
@@ -14,6 +13,8 @@ export async function GET(
 ) {
   try {
     const { id: storyId } = await params;
+    const { searchParams } = new URL(request.url);
+    const jobId = searchParams.get('jobId');
 
     // Get authenticated user
     const supabase = await createClient();
@@ -49,83 +50,130 @@ export async function GET(
           title: story.title,
           status: story.status,
           progress: story.generation_progress,
+          progress_stage: story.status,
+          percent_complete: story.status === 'completed' ? 1 : (story.generation_progress || 0) / 100,
+          error_message: story.status === 'failed' ? 'Story generation failed' : null,
         },
-        job: null,
+        job: story.generation_job_id ? {
+          id: story.generation_job_id,
+          status: story.status,
+          progress: story.generation_progress,
+          progress_stage: story.status,
+          message: story.status === 'completed' ? 'Story completed' : 'Story failed',
+          models: {
+            reasoning: 'google/gemini-2.5-flash-001',
+            writing: 'google/gemini-2.5-flash-001',
+            function: 'google/gemini-2.5-flash-001',
+          },
+          is_byok: false,
+          is_starred: false,
+        } : null,
       });
     }
 
-    // If no job ID, story is in draft state
-    if (!story.generation_job_id) {
+    // Use provided jobId or fall back to story's generation_job_id
+    const effectiveJobId = jobId || story.generation_job_id;
+
+    // If no job ID available, story is in draft state
+    if (!effectiveJobId) {
       return NextResponse.json({
         story: {
           id: story.id,
           title: story.title,
           status: 'failed',
           progress: 0,
+          progress_stage: 'failed',
+          percent_complete: 0,
+          error_message: 'No job ID available'
         },
         job: null,
       });
     }
 
-    try {
-      // Check job status with DeepWriter
-      const deepwriterService = createDeepwriterService();
-      const job = await deepwriterService.checkJobStatus(story.generation_job_id);
+    // Get DeepWriter API configuration
+    const deepwriterUrl = process.env.DEEPWRITER_API_URL || 'https://app.deepwriter.com';
+    const apiKey = process.env.DEEPWRITER_API_KEY;
 
-      // Update story progress in database
-      let newStatus = story.status;
-      if (job.status === 'completed') {
-        newStatus = 'completed';
-      } else if (job.status === 'failed') {
-        newStatus = 'failed';
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'DeepWriter API key not configured' },
+        { status: 500 }
+      );
+    }
+
+    try {
+      // Check job status with DeepWriter using direct API call
+      const response = await fetch(`${deepwriterUrl}/api/getJobStatus?jobId=${effectiveJobId}`, {
+        method: 'GET',
+        headers: {
+          "x-api-key": apiKey,
+          "Accept": "*/*"
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('DeepWriter API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error('Failed to fetch job status from DeepWriter');
       }
 
-      if (newStatus !== story.status || job.progress !== story.generation_progress) {
+      const job = await response.json();
+
+      // Map DeepWriter job status to our story status  
+      let newStatus = story.status;
+      const apiStatusToInternal = (apiStatus: string) => {
+        const statusMap: { [key: string]: string } = {
+          'draft': 'draft',
+          'processing': 'generating', 
+          'completed': 'completed',
+          'failed': 'failed'
+        };
+        return statusMap[apiStatus] || 'generating';
+      };
+
+      newStatus = apiStatusToInternal(job.status);
+      const newProgress = job.progress || 0;
+
+      // Update story in database if status or progress changed
+      if (newStatus !== story.status || newProgress !== story.generation_progress) {
         await supabase
           .from('stories')
           .update({
             status: newStatus,
-            generation_progress: job.progress,
+            generation_progress: newProgress,
             updated_at: new Date().toISOString(),
           })
           .eq('id', storyId);
       }
 
-      // If job is completed, fetch and store content
-      if (job.status === 'completed' && newStatus === 'completed') {
-        try {
-          const content = await deepwriterService.getJobContent(story.generation_job_id);
-          
-          // Store content (this could be in a separate table or as JSONB)
-          await supabase
-            .from('stories')
-            .update({
-              word_count: content.content.metadata.word_count,
-              chapter_count: content.content.metadata.chapter_count,
-              // Store content URL or the content itself
-              content_url: `/api/stories/${storyId}/content`,
-            })
-            .eq('id', storyId);
-
-          // You might want to store the actual content in a separate table
-          // or file system depending on your architecture
-        } catch (contentError) {
-          console.error('Failed to fetch job content:', contentError);
-        }
-      }
-
+      // Return response in expected format
       return NextResponse.json({
         story: {
           id: story.id,
-          title: story.title,
+          title: story.title || job.title,
           status: newStatus,
-          progress: job.progress,
+          progress: newProgress,
+          progress_stage: job.progress_stage || 'generating_work',
+          percent_complete: job.percent_complete || (newProgress / 100),
+          error_message: job.error_message || null,
         },
         job: {
           id: job.id,
           status: job.status,
-          progress: job.progress,
+          progress: newProgress,
+          progress_stage: job.progress_stage || 'generating_work',
           message: job.message,
+          models: {
+            reasoning: job.reasoning_model || 'google/gemini-2.5-flash-001',
+            writing: job.writing_model || 'google/gemini-2.5-flash-001', 
+            function: job.function_model || 'google/gemini-2.5-flash-001',
+          },
+          is_byok: job.is_byok || false,
+          is_starred: job.is_starred || false,
         },
       });
 
@@ -139,13 +187,24 @@ export async function GET(
           title: story.title,
           status: story.status,
           progress: story.generation_progress,
+          progress_stage: 'unknown',
+          percent_complete: (story.generation_progress || 0) / 100,
+          error_message: 'Unable to check status',
         },
-        job: {
-          id: story.generation_job_id,
+        job: effectiveJobId ? {
+          id: effectiveJobId,
           status: 'unknown',
           progress: story.generation_progress,
+          progress_stage: 'unknown',
           message: 'Unable to check status',
-        },
+          models: {
+            reasoning: 'google/gemini-2.5-flash-001',
+            writing: 'google/gemini-2.5-flash-001',
+            function: 'google/gemini-2.5-flash-001',
+          },
+          is_byok: false,
+          is_starred: false,
+        } : null,
       });
     }
 

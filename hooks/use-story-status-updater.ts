@@ -106,28 +106,52 @@ export function useStoryStatusUpdater(): UseStoryStatusUpdaterReturn {
     setError(null);
 
     try {
-      // Batch API call for uncached stories
-      const response = await fetch('/api/stories/check-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          storyIds: uncachedStoryIds,
-        }),
-        signal: abortControllerRef.current.signal,
+      // Make individual API calls for uncached stories
+      const promises = uncachedStoryIds.map(async (storyId) => {
+        try {
+          const response = await fetch(`/api/stories/${storyId}/status`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            signal: abortControllerRef.current?.signal,
+          });
+
+          if (!response.ok) {
+            console.error(`Failed to check status for story ${storyId}:`, response.statusText);
+            return null;
+          }
+
+          const data = await response.json();
+          
+          // Only return an update if the status actually changed
+          const story = generatingStories.find(s => s.id === storyId);
+          if (story && (data.story.status !== story.status || data.story.progress !== story.generation_progress)) {
+            return {
+              id: storyId,
+              status: data.story.status,
+              generation_progress: data.story.progress,
+              error_message: data.story.error_message,
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error checking status for story ${storyId}:`, error);
+          return null;
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
+      const results = await Promise.all(promises);
+      const updates = results.filter(Boolean) as StoryStatusUpdate[];
 
-      const result: StatusCheckResponse = await response.json();
+      // Simulate the old API response format
+      const result = {
+        success: true,
+        updates,
+        checked: uncachedStoryIds.length,
+        updated: updates.length,
+      };
 
-      if (!result.success) {
-        throw new Error(result.message || 'Status check failed');
-      }
 
       // Update cache with results
       const allUpdates = [...cachedUpdates];

@@ -232,9 +232,37 @@ Based on the provided prompt specifications.`;
 
   /**
    * Check the status of a generation job
+   * Note: This method now bypasses the broken DeepWriter client and calls the API directly
    */
   async checkJobStatus(jobId: string, customHeaders?: Record<string, string>): Promise<DeepwriterJob> {
-    return this.client.get<DeepwriterJob>(`/api/getJobStatus`, { jobId }, customHeaders);
+    // Use direct API call with x-api-key instead of broken Bearer token auth
+    const deepwriterUrl = process.env.DEEPWRITER_API_URL || 'https://app.deepwriter.com';
+    const apiKey = process.env.DEEPWRITER_API_KEY;
+
+    if (!apiKey) {
+      throw new Error('DeepWriter API key not configured');
+    }
+
+    const response = await fetch(`${deepwriterUrl}/api/getJobStatus?jobId=${jobId}`, {
+      method: 'GET',
+      headers: {
+        "x-api-key": apiKey,
+        "Accept": "*/*",
+        ...customHeaders,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('DeepWriter API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Failed to fetch job status from DeepWriter: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
   }
 
   /**
