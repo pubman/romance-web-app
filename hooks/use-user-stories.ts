@@ -18,18 +18,48 @@ export interface DatabaseStory {
       genre?: string;
       tropes?: string[];
       heat_level?: string;
+      story_length?: string;
+      conflict_type?: string;
     };
+    setting?: {
+      time_period?: string;
+      location?: string;
+      atmosphere?: string;
+    };
+    characters?: {
+      protagonist?: { name: string; traits?: string[]; occupation?: string };
+      love_interest?: { name: string; traits?: string[]; occupation?: string };
+    };
+    mood?: string;
   } | null;
   wizard_data: {
+    genre?: string;
     characters?: {
-      protagonist?: { name: string };
-      love_interest?: { name: string };
+      protagonist?: { name: string; traits?: string[]; occupation?: string };
+      love_interest?: { name: string; traits?: string[]; occupation?: string };
     };
+    setting?: {
+      time_period?: string;
+      location?: string;
+      atmosphere?: string;
+    };
+    elements?: {
+      genre?: string;
+      tropes?: string[];
+      heat_level?: string;
+      story_length?: string;
+      conflict_type?: string;
+    };
+    mood?: string;
   } | null;
   generation_progress: number;
   error_message?: string | null;
   created_at: string;
   updated_at: string;
+  // PDF-related properties
+  generation_job_id?: string | null;
+  pdfUrl?: string | null;
+  pageCount?: number | null;
 }
 
 interface UseUserStoriesReturn {

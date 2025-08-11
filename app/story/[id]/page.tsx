@@ -1,75 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StoryDetails } from "@/components/story-details";
-import { DatabaseStory } from "@/hooks/use-user-stories";
 
 interface StoryPageProps {
 	params: Promise<{ id: string }>;
 }
 
-// Transform DatabaseStory to StoryDetailsProps format
-function transformStoryData(
-	dbStory: DatabaseStory & { generation_job_id?: string },
-	content: string,
-	pdfUrl: string | null,
-	hasPdfCapability: boolean
-): unknown {
-	// Extract character names from wizard_data
-	const characters = [];
-	if (dbStory.wizard_data?.characters?.protagonist?.name) {
-		characters.push(dbStory.wizard_data.characters.protagonist.name);
-	}
-	if (dbStory.wizard_data?.characters?.love_interest?.name) {
-		characters.push(dbStory.wizard_data.characters.love_interest.name);
-	}
-
-	// Extract genre from story preferences
-	const genre =
-		dbStory.story_preferences?.elements?.genre ||
-		dbStory.story_preferences?.genre ||
-		"Romance";
-
-	// Extract setting from wizard_data or use default
-	const setting =
-		dbStory.wizard_data?.setting?.location ||
-		dbStory.wizard_data?.setting?.atmosphere ||
-		"Unknown Location";
-
-
-	// Estimate page count based on word count (roughly 250 words per page)
-	const estimatedPageCount =
-		dbStory.word_count > 0
-			? Math.max(1, Math.ceil(dbStory.word_count / 250))
-			: null;
-
-	return {
-		id: dbStory.id,
-		title: dbStory.title,
-		genre,
-		author: "You", // Since it's the user's story
-		createdAt: dbStory.created_at,
-		isPublic: dbStory.is_public,
-		characters,
-		setting,
-		content,
-		preferences: dbStory.story_preferences,
-		// PDF-related properties
-		pdfUrl,
-		jobId: dbStory.generation_job_id || null,
-		generatedAt: dbStory.updated_at,
-		pageCount: estimatedPageCount,
-		jobStatus:
-			dbStory.status === "completed"
-				? ("completed" as const)
-				: dbStory.status === "failed"
-				? ("failed" as const)
-				: dbStory.status === "generating"
-				? ("processing" as const)
-				: ("pending" as const),
-		errorMessage:
-			dbStory.status === "failed" ? "Story generation failed" : null,
-	};
-}
 
 export default async function StoryPage({ params }: StoryPageProps) {
 	const supabase = await createClient();
@@ -114,37 +50,37 @@ export default async function StoryPage({ params }: StoryPageProps) {
 		redirect("/dashboard"); // Redirect if story not found or no access
 	}
 
-	// Since we're only showing PDF view, we don't need to fetch text content
-	const content = ""; // Placeholder - not used in PDF-only view
-
 	// Fetch PDF data directly from DeepWriter for completed stories
-	let pdfUrl = null;
 	const hasPdfCapability = Boolean(dbStory.generation_job_id);
 	if (hasPdfCapability && dbStory.status === "completed") {
 		try {
-			const { createDeepwriterService } = await import('@/lib/deepwriter/service');
+			const { createDeepwriterService } = await import(
+				"@/lib/deepwriter/service"
+			);
 			const deepwriterService = createDeepwriterService();
-			
+
 			console.log(`Fetching PDF data for job ID: ${dbStory.generation_job_id}`);
-			const pdfArrayBuffer = await deepwriterService.previewPdf(dbStory.generation_job_id);
-			
+			const pdfArrayBuffer = await deepwriterService.previewPdf(
+				dbStory.generation_job_id
+			);
+
 			// Convert ArrayBuffer to base64 data URL
-			const pdfBase64 = Buffer.from(pdfArrayBuffer).toString('base64');
-			pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
-			
-			console.log(`Successfully fetched PDF data for job ${dbStory.generation_job_id}`);
+			const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
+			dbStory.pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
+
+			console.log(
+				`Successfully fetched PDF data for job ${dbStory.generation_job_id}`
+			);
 		} catch (pdfError) {
-			console.error('Error fetching PDF data from DeepWriter:', pdfError);
+			console.error("Error fetching PDF data from DeepWriter:", pdfError);
 			// pdfUrl remains null, will show error in component
 		}
 	}
 
-	const transformedStory = transformStoryData(
-		dbStory as DatabaseStory,
-		content,
-		pdfUrl,
-		hasPdfCapability
-	);
+	// Calculate page count estimate
+	if (dbStory.word_count > 0) {
+		dbStory.pageCount = Math.max(1, Math.ceil(dbStory.word_count / 250));
+	}
 
-	return <StoryDetails story={transformedStory} />;
+	return <StoryDetails story={dbStory} />;
 }

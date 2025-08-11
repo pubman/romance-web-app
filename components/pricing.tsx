@@ -73,7 +73,7 @@ export function Pricing({
 
 	const handlePurchase = async (plan: PricingPlan) => {
 		setIsLoading(plan.name);
-		
+
 		try {
 			const response = await fetch("/api/stripe/create-checkout-session", {
 				method: "POST",
@@ -119,7 +119,7 @@ export function Pricing({
 					<label className="relative inline-flex items-center cursor-pointer">
 						<Label>
 							<Switch
-								ref={switchRef as any}
+								ref={switchRef as React.RefObject<HTMLButtonElement>}
 								checked={!isMonthly}
 								onCheckedChange={handleToggle}
 								className="relative"
@@ -192,7 +192,8 @@ export function Pricing({
 											minimumFractionDigits: 0,
 											maximumFractionDigits: 0,
 										}}
-										formatter={(value) => `$${value}`}
+										// @ts-expect-error - formatter is not a valid prop for NumberFlow
+										formatter={(value: number) => `$${value}`}
 										transformTiming={{
 											duration: 500,
 											easing: "ease-out",

@@ -27,6 +27,13 @@ interface GenerateStoryRequest {
   };
 }
 
+interface DeepWriterError {
+  status?: number;
+  response?: {
+    message?: string;
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateStoryRequest = await request.json();
@@ -244,16 +251,17 @@ export async function POST(request: NextRequest) {
         
         // If it's a DeepWriter API error, provide more specific feedback
         if (deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError) {
-          const status = (deepwriterError as any).status;
-          const response = (deepwriterError as any).response;
+          const dwError = deepwriterError as DeepWriterError;
+          const status = dwError.status;
+          const response = dwError.response;
           
           console.error('DeepWriter API status:', status);
           console.error('DeepWriter API response:', response);
           
-          statusCode = status;
+          statusCode = Number(status);
           
           // Provide user-friendly error messages based on status
-          switch (status) {
+          switch (statusCode) {
             case 400:
               errorMessage = 'Invalid story configuration provided to DeepWriter';
               errorDetails = response?.message || deepwriterError.message;
@@ -275,7 +283,7 @@ export async function POST(request: NextRequest) {
               errorDetails = 'External service is temporarily unavailable';
               break;
             default:
-              errorMessage = `DeepWriter API error (${status})`;
+              errorMessage = `DeepWriter API error (${statusCode})`;
               errorDetails = response?.message || deepwriterError.message;
           }
         }

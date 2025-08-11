@@ -40,27 +40,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { UserSearch } from "@/components/user-search";
+import { DatabaseStory } from "@/hooks/use-user-stories";
 
-interface StoryDetailsProps {
-	story: {
-		id: string;
-		title: string;
-		genre: string;
-		author: string;
-		createdAt: string;
-		isPublic: boolean;
-		characters: string[];
-		setting: string;
-		content: string;
-		preferences?: unknown;
-		// PDF-related properties
-		pdfUrl?: string;
-		jobId?: string;
-		generatedAt?: string;
-		pageCount?: number;
-		jobStatus?: "pending" | "processing" | "completed" | "failed" | "moderated";
-		errorMessage?: string;
-	};
+export interface StoryDetailsProps {
+	story: DatabaseStory;
 }
 
 interface SharedUser {
@@ -73,8 +56,24 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 	const { toast } = useToast();
 	const [selectedUsers, setSelectedUsers] = useState<SharedUser[]>([]);
 	const [isCopied, setIsCopied] = useState(false);
-	const [isPublic, setIsPublic] = useState(story.isPublic);
+	const [isPublic, setIsPublic] = useState(story.is_public);
 	const [isSharing, setIsSharing] = useState(false);
+
+	// Compute derived properties from DatabaseStory
+	const characters: string[] = [];
+	if (story.wizard_data?.characters?.protagonist?.name) {
+		characters.push(story.wizard_data.characters.protagonist.name);
+	}
+	if (story.wizard_data?.characters?.love_interest?.name) {
+		characters.push(story.wizard_data.characters.love_interest.name);
+	}
+
+	const genre = story.story_preferences?.elements?.genre || story.story_preferences?.genre || "Romance";
+	const author = "You";
+	const jobStatus = story.status === "completed" ? "completed" as const
+		: story.status === "failed" ? "failed" as const
+		: story.status === "generating" ? "processing" as const
+		: "pending" as const;
 
 	// PDF viewer state
 	const [pdfError, setPdfError] = useState<string>("");
@@ -149,12 +148,10 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 		setIsPublic(!isPublic);
 	};
 
-
 	// PDF-related functions
 
-
 	const submitRating = async () => {
-		if (!story.jobId || rating === 0) return;
+		if (!story.generation_job_id || rating === 0) return;
 
 		setIsSubmittingRating(true);
 
@@ -205,8 +202,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 	};
 
 	// Helper variables
-	const isFailedOrModerated =
-		story.jobStatus === "failed" || story.jobStatus === "moderated";
+	const isFailedOrModerated = jobStatus === "failed" || jobStatus === "moderated";
 	const hasPdfCapability = Boolean(story.pdfUrl);
 	const pdfUrl = story.pdfUrl;
 
@@ -244,19 +240,18 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 		},
 		default: {
 			title: story.title,
-			description: `by ${story.author} • ${new Date(
-				story.createdAt
+			description: `by ${author} • ${new Date(
+				story.created_at
 			).toLocaleDateString()}`,
 			badge: null,
 		},
 	};
 
-	const currentStatus =
-		story.jobStatus === "failed"
+	const currentStatus = jobStatus === "failed"
 			? statusConfig.failed
-			: story.jobStatus === "moderated"
+			: jobStatus === "moderated"
 			? statusConfig.moderated
-			: story.jobStatus === "completed"
+			: jobStatus === "completed"
 			? statusConfig.completed
 			: statusConfig.default;
 
@@ -297,7 +292,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 											{currentStatus.description}
 										</CardDescription>
 										<div className="flex items-center gap-2 mt-3">
-											<Badge variant="secondary">{story.genre}</Badge>
+											<Badge variant="secondary">{genre}</Badge>
 											<Badge
 												variant="outline"
 												className="flex items-center gap-1"
@@ -328,7 +323,6 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 									</div>
 
 									<div className="flex items-center gap-2">
-
 										<Dialog>
 											<DialogTrigger asChild>
 												<Button variant="outline" size="sm">
@@ -456,9 +450,9 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 											<p className="mb-4 text-sm text-muted-foreground">
 												{pdfError}
 											</p>
-											<Button 
-												onClick={() => window.location.reload()} 
-												variant="outline" 
+											<Button
+												onClick={() => window.location.reload()}
+												variant="outline"
 												size="sm"
 											>
 												Try Again
@@ -522,7 +516,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 									<Label className="text-sm text-muted-foreground">
 										Setting
 									</Label>
-									<p className="text-sm font-medium">{story.setting}</p>
+									<p className="text-sm font-medium">{story.wizard_data?.setting?.location || story.wizard_data?.setting?.atmosphere || "Unknown Location"}</p>
 								</div>
 
 								<div>
@@ -579,7 +573,6 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 								</CardContent>
 							</Card>
 						)}
-
 
 						<div className="space-y-3">
 							<Button className="w-full" variant="outline">

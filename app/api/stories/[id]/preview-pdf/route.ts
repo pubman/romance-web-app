@@ -102,7 +102,7 @@ export async function GET(
       
       // Determine error type for better user feedback
       const errorStatus = deepwriterError && typeof deepwriterError === 'object' && 'status' in deepwriterError
-        ? (deepwriterError as any).status 
+        ? (deepwriterError as { status: number }).status 
         : null;
       const errorMessage = deepwriterError instanceof Error ? deepwriterError.message : 'Unknown error';
       

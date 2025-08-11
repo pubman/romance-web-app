@@ -20,6 +20,8 @@ import { useGuest } from "@/contexts/guest-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { User } from "@supabase/supabase-js";
+import { DatabaseProfile } from "@/hooks/use-user-profile";
 
 // Placeholder data for guests
 const guestStories = [
@@ -63,8 +65,8 @@ const guestSharedStories = [
 
 export default function DashboardPage() {
 	const { guestSession, isGuest } = useGuest();
-	const [user, setUser] = useState<any>(null);
-	const [profile, setProfile] = useState<any>(null);
+	const [user, setUser] = useState<User | null>(null);
+	const [profile, setProfile] = useState<DatabaseProfile | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	// Get reading progress count for the stat card

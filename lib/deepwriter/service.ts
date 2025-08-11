@@ -25,7 +25,6 @@ export class DeepwriterService {
   async createProject(
     projectName: string,
     email: string,
-    customHeaders?: Record<string, string>
   ): Promise<DeepwriterProject> {
     console.log('Creating DeepWriter project:', {
       projectName,
@@ -68,7 +67,6 @@ export class DeepwriterService {
     author?: string,
     title?: string,
     email?: string,
-    customHeaders?: Record<string, string>
   ): Promise<DeepwriterProject> {
     const request: UpdateProjectRequest = {
       prompt,
@@ -102,7 +100,6 @@ export class DeepwriterService {
   async generateWork(
     projectId: string,
     options?: Omit<GenerateWorkRequest, 'projectId'>,
-    customHeaders?: Record<string, string>
   ): Promise<DeepwriterJob> {
     const request: GenerateWorkRequest = {
       projectId,
@@ -151,7 +148,6 @@ export class DeepwriterService {
     author: string,
     email: string,
     config: Partial<RomanceGenerationConfig> = {},
-    customHeaders?: Record<string, string>
   ): Promise<DeepwriterJob> {
     const {
       enableTableOfContents = false,
@@ -186,7 +182,6 @@ export class DeepwriterService {
     const response = await this.client.post<GenerateWorkResponse>(
       '/api/generateWork',
       request,
-      customHeaders
     );
 
     // Validate that we received a job ID
@@ -234,7 +229,7 @@ Based on the provided prompt specifications.`;
    * Check the status of a generation job
    * Note: This method now bypasses the broken DeepWriter client and calls the API directly
    */
-  async checkJobStatus(jobId: string, customHeaders?: Record<string, string>): Promise<DeepwriterJob> {
+  async checkJobStatus(jobId: string): Promise<DeepwriterJob> {
     // Use direct API call with x-api-key instead of broken Bearer token auth
     const deepwriterUrl = process.env.DEEPWRITER_API_URL || 'https://app.deepwriter.com';
     const apiKey = process.env.DEEPWRITER_API_KEY;
@@ -248,7 +243,6 @@ Based on the provided prompt specifications.`;
       headers: {
         "x-api-key": apiKey,
         "Accept": "*/*",
-        ...customHeaders,
       },
     });
 
@@ -268,21 +262,21 @@ Based on the provided prompt specifications.`;
   /**
    * Get the content of a completed job
    */
-  async getJobContent(jobId: string, customHeaders?: Record<string, string>): Promise<DeepwriterContent> {
-    return this.client.get<DeepwriterContent>(`/api/jobs/${jobId}/content`, undefined, customHeaders);
+  async getJobContent(jobId: string): Promise<DeepwriterContent> {
+    return this.client.get<DeepwriterContent>(`/api/jobs/${jobId}/content`, undefined);
   }
 
   /**
    * Cancel a running job
    */
-  async cancelJob(jobId: string, customHeaders?: Record<string, string>): Promise<void> {
-    await this.client.delete<void>(`/api/jobs/${jobId}/cancel`, customHeaders);
+  async cancelJob(jobId: string): Promise<void> {
+    await this.client.delete<void>(`/api/jobs/${jobId}/cancel`);
   }
 
   /**
    * Preview PDF for a completed job (for iframe display)
    */
-  async previewPdf(jobId: string, customHeaders?: Record<string, string>): Promise<ArrayBuffer> {
+  async previewPdf(jobId: string): Promise<ArrayBuffer> {
     const response = await this.client.getRaw(`/api/previewPdf/${jobId}`, undefined, {
       'X-API-Key': this.client['config']?.apiKey || ''
     });

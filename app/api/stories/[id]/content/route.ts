@@ -188,7 +188,7 @@ This might happen if:
       
       // Determine error type and message
       const isDeepwriterError = contentError && typeof contentError === 'object' && 'status' in contentError;
-      const errorStatus = isDeepwriterError ? (contentError as any).status : null;
+      const errorStatus = isDeepwriterError ? (contentError as { status: number }).status : null;
       const errorMessage = contentError instanceof Error ? contentError.message : 'Unknown error';
       
       // Return error content but don't fail the request
