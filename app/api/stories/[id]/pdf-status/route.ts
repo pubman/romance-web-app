@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createDeepwriterService } from '@/lib/deepwriter/service';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: storyId } = params;
+    const { id: storyId } = await params;
 
     // Get authenticated user
     const supabase = await createClient();

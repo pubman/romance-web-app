@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import {
 	Dialog,
 	DialogContent,
@@ -53,7 +53,6 @@ interface SharedUser {
 }
 
 export function StoryDetails({ story }: StoryDetailsProps) {
-	const { toast } = useToast();
 	const [selectedUsers, setSelectedUsers] = useState<SharedUser[]>([]);
 	const [isCopied, setIsCopied] = useState(false);
 	const [isPublic, setIsPublic] = useState(story.is_public);
@@ -174,9 +173,8 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 
 			setRatingSubmitted(true);
 
-			toast({
-				title: "Rating Submitted",
-				description: "Thank you for your feedback!",
+			toast.success("Thank you for your feedback!", {
+				description: "Rating submitted successfully"
 			});
 
 			// Close modal after showing success
@@ -188,13 +186,11 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 			}, 2000);
 		} catch (error) {
 			console.error("Error submitting rating:", error);
-			toast({
-				title: "Failed to Submit Rating",
+			toast.error("Failed to Submit Rating", {
 				description:
 					error instanceof Error
 						? error.message
-						: "An unexpected error occurred",
-				variant: "destructive",
+						: "An unexpected error occurred"
 			});
 		} finally {
 			setIsSubmittingRating(false);
