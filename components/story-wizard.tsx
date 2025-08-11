@@ -14,6 +14,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStoryGeneration } from "@/hooks/use-story-generation";
+import { DatabaseStory } from "@/hooks/use-user-stories";
 
 import { GenreStep } from "@/components/wizard-steps/genre-step";
 import { CharacterStep } from "@/components/wizard-steps/character-step";
@@ -118,8 +119,50 @@ export function StoryWizard() {
 
 	const progress = (currentStep / steps.length) * 100;
 
-	const updatePreferences = (stepData: Partial<StoryPreferences>) => {
-		setPreferences((prev) => ({ ...prev, ...stepData }));
+	const updatePreferences = (stepData: DatabaseStory["story_preferences"]) => {
+		if (stepData) {
+			setPreferences((prev) => {
+				// Merge the data carefully to maintain StoryPreferences structure
+				const updated: StoryPreferences = { ...prev };
+				
+				if (stepData.genre) updated.genre = stepData.genre;
+				if (stepData.mood) updated.mood = stepData.mood;
+				
+				if (stepData.characters) {
+					updated.characters = {
+						protagonist: {
+							name: stepData.characters.protagonist?.name || prev.characters.protagonist.name,
+							traits: stepData.characters.protagonist?.traits || prev.characters.protagonist.traits,
+							occupation: stepData.characters.protagonist?.occupation || prev.characters.protagonist.occupation,
+						},
+						love_interest: {
+							name: stepData.characters.love_interest?.name || prev.characters.love_interest.name,
+							traits: stepData.characters.love_interest?.traits || prev.characters.love_interest.traits,
+							occupation: stepData.characters.love_interest?.occupation || prev.characters.love_interest.occupation,
+						},
+					};
+				}
+				
+				if (stepData.setting) {
+					updated.setting = {
+						time_period: stepData.setting.time_period || prev.setting.time_period,
+						location: stepData.setting.location || prev.setting.location,
+						atmosphere: stepData.setting.atmosphere || prev.setting.atmosphere,
+					};
+				}
+				
+				if (stepData.elements) {
+					updated.elements = {
+						tropes: stepData.elements.tropes || prev.elements.tropes,
+						heat_level: stepData.elements.heat_level || prev.elements.heat_level,
+						story_length: stepData.elements.story_length || prev.elements.story_length,
+						conflict_type: stepData.elements.conflict_type || prev.elements.conflict_type,
+					};
+				}
+				
+				return updated;
+			});
+		}
 	};
 
 	const handleNext = () => {

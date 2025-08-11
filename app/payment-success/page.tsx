@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Check, Sparkles, Loader2 } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const sessionId = searchParams?.get("session_id");
@@ -121,5 +121,21 @@ export default function PaymentSuccessPage() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+export default function PaymentSuccessPage() {
+	return (
+		<Suspense fallback={
+			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center p-4">
+				<Card className="w-full max-w-md">
+					<CardContent className="flex items-center justify-center p-8">
+						<Loader2 className="h-8 w-8 animate-spin" />
+					</CardContent>
+				</Card>
+			</div>
+		}>
+			<PaymentSuccessContent />
+		</Suspense>
 	);
 }

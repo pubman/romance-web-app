@@ -3,7 +3,7 @@
 import { Pricing } from "@/components/pricing";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 const demoPlans = [
 	{
@@ -41,7 +41,7 @@ const demoPlans = [
 	},
 ];
 
-export default function PricingPage() {
+function PricingContent() {
 	const searchParams = useSearchParams();
 	const canceled = searchParams?.get("canceled");
 
@@ -69,5 +69,20 @@ export default function PricingPage() {
 				showSwitch={false}
 			/>
 		</div>
+	);
+}
+
+export default function PricingPage() {
+	return (
+		<Suspense fallback={
+			<div className="h-[800px] overflow-y-auto rounded-lg">
+				<DashboardHeader />
+				<div className="flex items-center justify-center p-8">
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+				</div>
+			</div>
+		}>
+			<PricingContent />
+		</Suspense>
 	);
 }

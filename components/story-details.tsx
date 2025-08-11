@@ -67,12 +67,19 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 		characters.push(story.wizard_data.characters.love_interest.name);
 	}
 
-	const genre = story.story_preferences?.elements?.genre || story.story_preferences?.genre || "Romance";
+	const genre =
+		story.story_preferences?.elements?.genre ||
+		story.story_preferences?.genre ||
+		"Romance";
 	const author = "You";
-	const jobStatus = story.status === "completed" ? "completed" as const
-		: story.status === "failed" ? "failed" as const
-		: story.status === "generating" ? "processing" as const
-		: "pending" as const;
+	const jobStatus =
+		story.status === "completed"
+			? ("completed" as const)
+			: story.status === "failed"
+			? ("failed" as const)
+			: story.status === "generating"
+			? ("processing" as const)
+			: ("pending" as const);
 
 	// PDF viewer state
 	const [pdfError, setPdfError] = useState<string>("");
@@ -174,7 +181,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 			setRatingSubmitted(true);
 
 			toast.success("Thank you for your feedback!", {
-				description: "Rating submitted successfully"
+				description: "Rating submitted successfully",
 			});
 
 			// Close modal after showing success
@@ -190,7 +197,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 				description:
 					error instanceof Error
 						? error.message
-						: "An unexpected error occurred"
+						: "An unexpected error occurred",
 			});
 		} finally {
 			setIsSubmittingRating(false);
@@ -198,9 +205,9 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 	};
 
 	// Helper variables
-	const isFailedOrModerated = jobStatus === "failed" || jobStatus === "moderated";
-	const hasPdfCapability = Boolean(story.pdfUrl);
-	const pdfUrl = story.pdfUrl;
+	const isFailedOrModerated = jobStatus === "failed";
+	const hasPdfCapability = Boolean(story.content_url);
+	const pdfUrl = story.content_url;
 
 	// Status configuration
 	const statusConfig = {
@@ -243,10 +250,9 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 		},
 	};
 
-	const currentStatus = jobStatus === "failed"
+	const currentStatus =
+		jobStatus === "failed"
 			? statusConfig.failed
-			: jobStatus === "moderated"
-			? statusConfig.moderated
 			: jobStatus === "completed"
 			? statusConfig.completed
 			: statusConfig.default;
@@ -305,14 +311,14 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 													</>
 												)}
 											</Badge>
-											{story.pageCount && (
+											{story.page_count && (
 												<Badge
 													variant="outline"
 													className="flex items-center gap-1"
 												>
 													<FileIcon className="h-3 w-3" />
-													{story.pageCount}{" "}
-													{story.pageCount === 1 ? "page" : "pages"}
+													{story.page_count}{" "}
+													{story.page_count === 1 ? "page" : "pages"}
 												</Badge>
 											)}
 										</div>
@@ -422,18 +428,18 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 										<div className="flex flex-col items-center justify-center p-8 text-center">
 											<AlertCircle
 												className={`mb-4 h-12 w-12 ${
-													story.jobStatus === "failed"
+													story.status === "failed"
 														? "text-red-500"
 														: "text-yellow-500"
 												}`}
 											/>
 											<h3 className="mb-2 text-lg font-medium">
-												{story.jobStatus === "failed"
+												{story.status === "failed"
 													? "PDF Generation Failed"
 													: "PDF Generation Moderated"}
 											</h3>
 											<p className="mb-4 text-sm text-muted-foreground">
-												{story.errorMessage ||
+												{story.error_message ||
 													"No additional error details available."}
 											</p>
 										</div>
@@ -496,7 +502,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 										Characters
 									</Label>
 									<div className="flex flex-wrap gap-1 mt-1">
-										{story.characters.map((character) => (
+										{characters.map((character) => (
 											<Badge
 												key={character}
 												variant="outline"
@@ -512,7 +518,11 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 									<Label className="text-sm text-muted-foreground">
 										Setting
 									</Label>
-									<p className="text-sm font-medium">{story.wizard_data?.setting?.location || story.wizard_data?.setting?.atmosphere || "Unknown Location"}</p>
+									<p className="text-sm font-medium">
+										{story.wizard_data?.setting?.location ||
+											story.wizard_data?.setting?.atmosphere ||
+											"Unknown Location"}
+									</p>
 								</div>
 
 								<div>
@@ -520,13 +530,13 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 										Word Count
 									</Label>
 									<p className="text-sm font-medium">
-										{story.content.split(" ").length.toLocaleString()} words
+										{story.word_count.toLocaleString()} words
 									</p>
 								</div>
 							</CardContent>
 						</Card>
 
-						{story.preferences && (
+						{story.story_preferences && (
 							<Card className="bg-card/80 backdrop-blur-sm">
 								<CardHeader>
 									<CardTitle className="text-lg flex items-center gap-2">
@@ -535,13 +545,13 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									{story.preferences.elements?.tropes && (
+									{story.story_preferences?.elements?.tropes && (
 										<div>
 											<Label className="text-sm text-muted-foreground">
 												Tropes
 											</Label>
 											<div className="flex flex-wrap gap-1 mt-1">
-												{story.preferences.elements.tropes.map(
+												{story.story_preferences.elements.tropes.map(
 													(trope: string) => (
 														<Badge
 															key={trope}
@@ -556,13 +566,13 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 										</div>
 									)}
 
-									{story.preferences.elements?.heat_level && (
+									{story.story_preferences?.elements?.heat_level && (
 										<div>
 											<Label className="text-sm text-muted-foreground">
 												Heat Level
 											</Label>
 											<p className="text-sm font-medium capitalize">
-												{story.preferences.elements.heat_level}
+												{story.story_preferences.elements.heat_level}
 											</p>
 										</div>
 									)}

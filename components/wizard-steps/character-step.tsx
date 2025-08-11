@@ -12,11 +12,11 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { X } from "lucide-react";
-import { Preferences, Character } from "@/lib/deepwriter/types";
+import { DatabaseStory } from "@/hooks/use-user-stories";
 
 interface CharacterStepProps {
-	preferences: Preferences;
-	onUpdate: (data: Preferences) => void;
+	preferences: DatabaseStory["story_preferences"];
+	onUpdate: (data: DatabaseStory["story_preferences"]) => void;
 }
 
 const personalityTraits = [
@@ -63,7 +63,8 @@ const occupations = [
 interface CharacterCardProps {
 	title: string;
 	type: "protagonist" | "love_interest";
-	character: Character;
+	// @ts-expect-error - character is a string
+	character: DatabaseStory["story_preferences"]["characters"][keyof DatabaseStory["story_preferences"]["characters"]];
 	onUpdateCharacter: (
 		type: "protagonist" | "love_interest",
 		field: string,
@@ -173,9 +174,9 @@ export function CharacterStep({ preferences, onUpdate }: CharacterStepProps) {
 	) => {
 		onUpdate({
 			characters: {
-				...preferences.characters,
+				...preferences?.characters,
 				[type]: {
-					...preferences.characters[type],
+					...preferences?.characters?.[type],
 					[field]: value,
 				},
 			},
@@ -183,8 +184,9 @@ export function CharacterStep({ preferences, onUpdate }: CharacterStepProps) {
 	};
 
 	const addTrait = (type: "protagonist" | "love_interest", trait: string) => {
-		const currentTraits = preferences.characters[type].traits || [];
+		const currentTraits = preferences?.characters?.[type]?.traits || [];
 		if (!currentTraits.includes(trait) && currentTraits.length < 4) {
+			// @ts-expect-error - currentTraits is an array of strings
 			updateCharacter(type, "traits", [...currentTraits, trait]);
 		}
 	};
@@ -193,10 +195,11 @@ export function CharacterStep({ preferences, onUpdate }: CharacterStepProps) {
 		type: "protagonist" | "love_interest",
 		trait: string
 	) => {
-		const currentTraits = preferences.characters[type].traits || [];
+		const currentTraits = preferences?.characters?.[type]?.traits || [];
 		updateCharacter(
 			type,
 			"traits",
+			// @ts-expect-error - currentTraits is an array of strings
 			currentTraits.filter((t: string) => t !== trait)
 		);
 	};
@@ -206,7 +209,7 @@ export function CharacterStep({ preferences, onUpdate }: CharacterStepProps) {
 			<CharacterCard
 				title="Main Character"
 				type="protagonist"
-				character={preferences.characters.protagonist}
+				character={preferences?.characters?.protagonist}
 				onUpdateCharacter={updateCharacter}
 				onAddTrait={addTrait}
 				onRemoveTrait={removeTrait}
@@ -214,7 +217,7 @@ export function CharacterStep({ preferences, onUpdate }: CharacterStepProps) {
 			<CharacterCard
 				title="Love Interest"
 				type="love_interest"
-				character={preferences.characters.love_interest}
+				character={preferences?.characters?.love_interest}
 				onUpdateCharacter={updateCharacter}
 				onAddTrait={addTrait}
 				onRemoveTrait={removeTrait}

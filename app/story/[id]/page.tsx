@@ -6,7 +6,6 @@ interface StoryPageProps {
 	params: Promise<{ id: string }>;
 }
 
-
 export default async function StoryPage({ params }: StoryPageProps) {
 	const supabase = await createClient();
 	const { id } = await params;
@@ -29,6 +28,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
       title,
       description,
       cover_image_url,
+      author,
       status,
       is_public,
       word_count,
@@ -38,6 +38,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
       generation_progress,
       generation_job_id,
       content_url,
+      page_count,
       created_at,
       updated_at
     `
@@ -66,7 +67,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
 			// Convert ArrayBuffer to base64 data URL
 			const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
-			dbStory.pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
+			dbStory.content_url = `data:application/pdf;base64,${pdfBase64}`;
 
 			console.log(
 				`Successfully fetched PDF data for job ${dbStory.generation_job_id}`
@@ -79,7 +80,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
 	// Calculate page count estimate
 	if (dbStory.word_count > 0) {
-		dbStory.pageCount = Math.max(1, Math.ceil(dbStory.word_count / 250));
+		dbStory.page_count = Math.max(1, Math.ceil(dbStory.word_count / 250));
 	}
 
 	return <StoryDetails story={dbStory} />;

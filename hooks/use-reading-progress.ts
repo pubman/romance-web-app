@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { DatabaseStory } from "./use-user-stories";
 
 export interface ReadingProgressItem {
   story_id: string;
@@ -18,7 +19,7 @@ export interface ReadingProgressItem {
     status: 'draft' | 'generating' | 'completed' | 'failed';
     word_count: number;
     chapter_count: number;
-    story_preferences: any;
+    story_preferences: DatabaseStory["story_preferences"];
     created_at: string;
   };
 }
@@ -82,7 +83,8 @@ export function useReadingProgress(userId?: string): UseReadingProgressReturn {
         throw new Error(fetchError.message);
       }
 
-      setReadingProgress(data || []);
+      // Type assertion through unknown to handle Supabase type inference issues
+      setReadingProgress((data as unknown) as ReadingProgressItem[] || []);
     } catch (err) {
       console.error("Error fetching reading progress:", err);
       setError(err instanceof Error ? err.message : "Failed to load reading progress");

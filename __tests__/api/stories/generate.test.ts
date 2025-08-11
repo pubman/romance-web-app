@@ -328,6 +328,7 @@ describe('/api/stories/generate', () => {
         callCount++;
         if (callCount === 1) {
           // First call (profile query) succeeds
+          // @ts-expect-error Jest mock typing issue
           return { single: jest.fn().mockResolvedValue(createMockResponse(profile)) };
         } else if (callCount === 2) {
           // Second call (story update) fails

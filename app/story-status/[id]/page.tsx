@@ -233,8 +233,7 @@ export default function StoryStatusPage() {
 									)}
 								</div>
 
-								{(status.status === "generating" ||
-									status.status === "processing") && (
+								{status.status === "processing" && (
 									<>
 										<div className="flex items-center justify-between text-sm text-muted-foreground">
 											<span>Time elapsed: {formatTime(timeElapsed)}</span>

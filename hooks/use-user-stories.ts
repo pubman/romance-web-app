@@ -9,7 +9,7 @@ export interface DatabaseStory {
   cover_image_url: string | null;
   status: 'draft' | 'generating' | 'completed' | 'failed';
   is_public: boolean;
-  content_url: string | null;
+  author: string;
   word_count: number;
   chapter_count: number;
   story_preferences: {
@@ -58,8 +58,8 @@ export interface DatabaseStory {
   updated_at: string;
   // PDF-related properties
   generation_job_id?: string | null;
-  pdfUrl?: string | null;
-  pageCount?: number | null;
+  content_url?: string | null;
+  page_count?: number | null;
 }
 
 interface UseUserStoriesReturn {

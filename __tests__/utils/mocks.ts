@@ -154,12 +154,13 @@ export class MockDeepwriterError extends Error {
 }
 
 // Response helpers
-export const createMockResponse = (data: any, error: any = null) => ({
+export const createMockResponse = <T = unknown>(data: T, error: unknown = null) => ({
   data,
   error,
 });
 
-export const createMockRequest = (body: any, headers: Record<string, string> = {}) => ({
+export const createMockRequest = <T = unknown>(body: T, headers: Record<string, string> = {}) => ({
+  // @ts-expect-error Jest mock typing issue
   json: jest.fn().mockResolvedValue(body),
   headers: new Map(Object.entries(headers)),
 });

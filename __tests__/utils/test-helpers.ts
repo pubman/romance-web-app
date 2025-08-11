@@ -2,13 +2,14 @@ import { jest } from '@jest/globals';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Helper to create a mock NextRequest
-export const createMockNextRequest = (body: any, options: {
+export const createMockNextRequest = <T = unknown>(body: T, options: {
   method?: string;
   headers?: Record<string, string>;
 } = {}) => {
   const { method = 'POST', headers = {} } = options;
   
   const request = {
+    // @ts-expect-error Jest mock typing issue
     json: jest.fn().mockResolvedValue(body),
     method,
     headers: new Headers(headers),

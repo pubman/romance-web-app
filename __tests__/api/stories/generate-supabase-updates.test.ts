@@ -211,7 +211,7 @@ describe('Story Generation - Supabase Updates', () => {
       });
 
       // Test empty string separately since it's a special case
-      const emptyString = '';
+      const emptyString: string = '';
       const isEmptyValid = Boolean(emptyString && typeof emptyString === 'string' && emptyString.trim().length > 0);
       expect(isEmptyValid).toBe(false);
     });
