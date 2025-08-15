@@ -8,12 +8,12 @@ import { GuestStoryDetails } from "@/components/guest-story-details";
 const demoStories = {
   "demo-3": {
     id: "demo-3",
-    title: "Midnight in Paris",
+    title: "Blueprint for a Kiss",
     genre: "Contemporary",
     author: "Emma Wilson", 
     sharedAt: "2024-01-12",
-    description: "A chance encounter at the Eiffel Tower leads to an unexpected romance between Sophie, an American literature professor, and Jean-Luc, a charming Parisian architect. Their love story unfolds against the magical backdrop of the City of Light.",
-    characters: ["Sophie", "Jean-Luc"],
+    description: "A chance encounter for Emma leads to a deeper romance.",
+    characters: ["Emma", "James"],
     isDemo: true,
     contentUrl: "/Emma's Romance.pdf", // Path to our static PDF content
     status: "completed" as const,

@@ -51,14 +51,14 @@ const guestStories = [
 
 const guestSharedStories = [
 	{
-		id: "demo-3",
-		title: "Midnight in Paris",
-		genre: "Contemporary",
-		author: "Emma Wilson",
-		sharedAt: "2024-01-12",
-		excerpt:
-			"A chance encounter at the Eiffel Tower leads to an unexpected romance between Sophie, an American literature professor, and Jean-Luc, a charming Parisian architect. Their love story unfolds against the magical backdrop of the City of Light.",
-		characters: ["Sophie", "Jean-Luc"],
+					id: "3",
+					title: "Blueprint for a Kisses",
+					genre: "Contemporary",
+					author: "Emma Wilson",
+					sharedAt: "2024-01-12",
+					excerpt:
+						"A chance encounter for architect Emma leads to a deeper romance",
+					characters: ["Emma", "James"],
 		isDemo: true,
 	},
 ];
@@ -141,13 +141,13 @@ export default function DashboardPage() {
 		? [
 				{
 					id: "3",
-					title: "Midnight in Paris",
+					title: "Blueprint for a Kisses",
 					genre: "Contemporary",
 					author: "Emma Wilson",
 					sharedAt: "2024-01-12",
 					excerpt:
-						"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
-					characters: ["Sophie", "Jean-Luc"],
+						"A chance encounter for architect Emma leads to a deeper romance",
+					characters: ["Emma", "James"],
 				},
 		  ]
 		: guestSharedStories;
