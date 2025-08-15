@@ -94,9 +94,9 @@ export default {
         },
       },
       backgroundImage: {
-        "romantic-gradient": "linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%)",
-        "coral-gradient": "linear-gradient(135deg, #fef7ed 0%, #fde68a 100%)",
-        "lavender-gradient": "linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%)",
+        "academic-gradient": "linear-gradient(135deg, #fff7ed 0%, #fefce8 50%, #fed7aa 100%)",
+        "success-gradient": "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+        "energy-gradient": "linear-gradient(135deg, #fed7aa 0%, #fef3c7 50%, #fbbf24 100%)",
       },
       borderRadius: {
         lg: "var(--radius)",

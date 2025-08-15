@@ -67,12 +67,12 @@ export function SignUpForm({
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-2">
-            <h1 className="text-3xl font-heading text-primary">RomanceByMe</h1>
-            <p className="text-sm text-muted-foreground mt-1">Create your perfect love story</p>
+            <h1 className="text-3xl font-heading text-primary">PaperAI</h1>
+            <p className="text-sm text-muted-foreground mt-1">Generate papers that impress professors</p>
           </div>
-          <CardTitle className="text-2xl font-heading">Begin Your Journey</CardTitle>
+          <CardTitle className="text-2xl font-heading">Start Writing Winning Papers</CardTitle>
           <CardDescription>
-            Join thousands of romance writers crafting their dream stories
+            Join 50,000+ students getting better grades with AI-powered writing
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,11 +115,11 @@ export function SignUpForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating your writer profile..." : "Start Writing"}
+                {isLoading ? "Creating your scholar profile..." : "Start Generating Papers"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Already crafting stories?{" "}
+              Already dominating academics?{" "}
               <Link href="/auth/login" className="text-primary hover:text-primary/80 underline underline-offset-4">
                 Sign in
               </Link>

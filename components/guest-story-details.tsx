@@ -51,7 +51,7 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-romantic-gradient">
+    <div className="min-h-screen bg-academic-gradient">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Navigation */}
         <div className="mb-6">

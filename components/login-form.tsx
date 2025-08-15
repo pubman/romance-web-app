@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useGuest } from "@/contexts/guest-context";
-import { UserCheck } from "lucide-react";
+import { UserCheck, Brain } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -72,12 +72,12 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-2">
-            <h1 className="text-3xl font-heading text-primary">RomanceByMe</h1>
-            <p className="text-sm text-muted-foreground mt-1">Create your perfect love story</p>
+            <h1 className="text-3xl font-heading text-primary">PaperAI</h1>
+            <p className="text-sm text-muted-foreground mt-1">Generate papers that impress professors</p>
           </div>
-          <CardTitle className="text-2xl font-heading">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-heading">Welcome Back, Scholar</CardTitle>
           <CardDescription>
-            Sign in to continue crafting your romantic tales
+            Sign in to continue generating A+ papers
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -140,12 +140,12 @@ export function LoginForm({
             </Button>
 
             <div className="mt-4 text-center text-sm">
-              New to romance writing?{" "}
+              New to academic domination?{" "}
               <Link
                 href="/auth/sign-up"
                 className="text-primary hover:text-primary/80 underline underline-offset-4"
               >
-                Start your journey
+                Start your journey to A+
               </Link>
             </div>
           </form>

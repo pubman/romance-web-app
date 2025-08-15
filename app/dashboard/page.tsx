@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+			<div className="min-h-screen bg-academic-gradient flex items-center justify-center">
 				<div className="text-center">
 					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
 					<p className="text-muted-foreground">Loading your dashboard...</p>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
 		: guestSession?.user.displayName || "Guest Writer";
 
 	return (
-		<div className="min-h-screen bg-romantic-gradient">
+		<div className="min-h-screen bg-academic-gradient">
 			<DashboardHeader />
 
 			<main className="container mx-auto px-4 py-8">

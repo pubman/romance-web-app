@@ -57,7 +57,7 @@ export default function GuestStoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-academic-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading story...</p>
@@ -68,7 +68,7 @@ export default function GuestStoryPage() {
 
   if (!story) {
     return (
-      <div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-academic-gradient flex items-center justify-center">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-heading mb-4">Story Not Found</h1>
           <p className="text-muted-foreground mb-6">

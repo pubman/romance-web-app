@@ -134,7 +134,7 @@ export default function StoryStatusPage() {
 
 	if (loading && !status) {
 		return (
-			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+			<div className="min-h-screen bg-academic-gradient flex items-center justify-center">
 				<div className="text-center">
 					<Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
 					<p className="text-muted-foreground">Loading story status...</p>
@@ -145,7 +145,7 @@ export default function StoryStatusPage() {
 
 	if (error && !status) {
 		return (
-			<div className="min-h-screen bg-romantic-gradient">
+			<div className="min-h-screen bg-academic-gradient">
 				<div className="container mx-auto px-4 py-8">
 					<Card className="max-w-2xl mx-auto border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
 						<CardHeader>
@@ -173,14 +173,14 @@ export default function StoryStatusPage() {
 
 	if (!status) {
 		return (
-			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center">
+			<div className="min-h-screen bg-academic-gradient flex items-center justify-center">
 				<p className="text-muted-foreground">Story not found</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-romantic-gradient">
+		<div className="min-h-screen bg-academic-gradient">
 			<div className="container mx-auto px-4 py-8">
 				<div className="mb-8">
 					<Link

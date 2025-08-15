@@ -258,7 +258,7 @@ export function StoryDetails({ story }: StoryDetailsProps) {
 			: statusConfig.default;
 
 	return (
-		<div className="min-h-screen bg-romantic-gradient">
+		<div className="min-h-screen bg-academic-gradient">
 			<div className="container mx-auto px-4 py-8">
 				<div className="mb-6">
 					<Link

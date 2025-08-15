@@ -66,7 +66,7 @@ function PaymentSuccessContent() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center p-4">
+			<div className="min-h-screen bg-academic-gradient flex items-center justify-center p-4">
 				<Card className="w-full max-w-md">
 					<CardContent className="flex items-center justify-center p-8">
 						<Loader2 className="h-8 w-8 animate-spin" />
@@ -77,7 +77,7 @@ function PaymentSuccessContent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-romantic-gradient flex items-center justify-center p-4">
+		<div className="min-h-screen bg-academic-gradient flex items-center justify-center p-4">
 			<Card className="w-full max-w-md">
 				<CardHeader className="text-center">
 					<div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-full w-16 h-16 flex items-center justify-center">
@@ -127,7 +127,7 @@ function PaymentSuccessContent() {
 export default function PaymentSuccessPage() {
 	return (
 		<Suspense fallback={
-			<div className="min-h-screen bg-romantic-gradient flex items-center justify-center p-4">
+			<div className="min-h-screen bg-academic-gradient flex items-center justify-center p-4">
 				<Card className="w-full max-w-md">
 					<CardContent className="flex items-center justify-center p-8">
 						<Loader2 className="h-8 w-8 animate-spin" />
