@@ -12,10 +12,10 @@ const demoStories = {
     genre: "Contemporary",
     author: "Emma Wilson", 
     sharedAt: "2024-01-12",
-    description: "A chance encounter at the Eiffel Tower leads to an unexpected romance...",
+    description: "A chance encounter at the Eiffel Tower leads to an unexpected romance between Sophie, an American literature professor, and Jean-Luc, a charming Parisian architect. Their love story unfolds against the magical backdrop of the City of Light.",
     characters: ["Sophie", "Jean-Luc"],
     isDemo: true,
-    contentUrl: "/demo-midnight-in-paris.txt", // Path to our static content
+    contentUrl: "/Emma's Romance.pdf", // Path to our static PDF content
     status: "completed" as const,
     word_count: 2500,
     chapter_count: 3,

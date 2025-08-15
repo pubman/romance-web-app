@@ -38,25 +38,17 @@ interface GuestStoryDetailsProps {
 }
 
 export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
-  const [content, setContent] = useState<string>("");
+  const [pdfError, setPdfError] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await fetch(story.contentUrl);
-        const text = await response.text();
-        setContent(text);
-      } catch (error) {
-        console.error("Failed to load story content:", error);
-        setContent("Failed to load story content. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Simulate loading time for PDF
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
 
-    fetchContent();
-  }, [story.contentUrl]);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-romantic-gradient">
@@ -148,25 +140,72 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Story Content
+              Story PDF
             </CardTitle>
             <CardDescription>
               Enjoy this sample romance story. Create your account to generate your own personalized stories!
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2 text-muted-foreground">Loading story...</span>
-              </div>
-            ) : (
-              <div className="prose prose-sm max-w-none dark:prose-invert">
-                <div className="bg-muted/30 p-6 rounded-lg font-serif leading-relaxed whitespace-pre-line">
-                  {content}
+            <div className="min-h-[600px]">
+              {loading ? (
+                <div className="flex items-center justify-center py-8 min-h-[600px]">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading your story PDF...</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : pdfError ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center min-h-[600px]">
+                  <FileText className="mb-4 h-12 w-12 text-red-500" />
+                  <h3 className="mb-2 text-lg font-medium">Failed to Load PDF</h3>
+                  <p className="mb-4 text-sm text-muted-foreground">{pdfError}</p>
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <iframe
+                    src={story.contentUrl}
+                    className="h-[600px] w-full rounded-lg border"
+                    title="Sample Romance Story PDF"
+                    onError={() => setPdfError("Failed to display PDF")}
+                  />
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        <span>Sample Romance Story</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-muted-foreground">
+                          {story.word_count.toLocaleString()} words
+                        </span>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                        >
+                          <a
+                            href={story.contentUrl}
+                            download="Emma's Romance.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Download PDF
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
