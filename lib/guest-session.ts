@@ -27,7 +27,7 @@ export function createGuestSession(): GuestSession {
 			id: guestId,
 			displayName: "Guest Writer",
 			email: "guest@example.com",
-			creditsRemaining: 1, // One free trial credit
+			creditsRemaining: 0, // One free trial credit
 			createdAt: now.toISOString(),
 		},
 		isGuest: true,

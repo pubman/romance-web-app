@@ -64,13 +64,13 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
 
 	const useGuestCredit = () => {
 		if (guestSession && guestSession.user.creditsRemaining > 0) {
-			updateGuestCredits(1);
+			updateGuestCredits(0);
 			// Update local state
 			const updatedSession = {
 				...guestSession,
 				user: {
 					...guestSession.user,
-					creditsRemaining: guestSession.user.creditsRemaining - 1,
+					creditsRemaining: 0 
 				},
 			};
 			setGuestSession(updatedSession);
