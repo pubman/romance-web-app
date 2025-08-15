@@ -4,26 +4,26 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { GuestStoryDetails } from "@/components/guest-story-details";
 
-// Demo stories data - matches the guestSharedStories in dashboard
-const demoStories = {
+// Demo papers data - matches the guestSharedStories in dashboard
+const demoPapers = {
   "demo-3": {
     id: "demo-3",
-    title: "Blueprint for a Kiss",
-    genre: "Contemporary",
-    author: "Emma Wilson", 
+    title: "Singapore's Technological Innovation Trajectory: 2025-2030 Strategic Positioning",
+    genre: "Research Paper",
+    author: "Dr. Sarah Chen", 
     sharedAt: "2024-01-12",
-    description: "A chance encounter for Emma leads to a deeper romance.",
-    characters: ["Emma", "James"],
+    description: "A comprehensive analysis of Singapore's strategic positioning in technological innovation for the next five years",
+    characters: ["Technological Innovation", "Strategic Positioning", "Singapore", "Technology Policy"],
     isDemo: true,
-    contentUrl: "/Emma's Romance.pdf", // Path to our static PDF content
+    contentUrl: "/Example_Paper.pdf", // Path to our static PDF content
     status: "completed" as const,
-    word_count: 2500,
-    chapter_count: 3,
+    word_count: 8000,
+    chapter_count: 25, // Using as page_count for academic papers
   }
 };
 
 
-type DemoStory = {
+type DemoPaper = {
   id: string;
   title: string;
   genre: string;
@@ -38,17 +38,17 @@ type DemoStory = {
   chapter_count: number;
 };
 
-export default function GuestStoryPage() {
+export default function GuestPaperPage() {
   const params = useParams();
   const id = params?.id as string;
-  const [story, setStory] = useState<DemoStory | null>(null);
+  const [paper, setPaper] = useState<DemoPaper | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading and fetch demo story
+    // Simulate loading and fetch demo paper
     const timer = setTimeout(() => {
-      const foundStory = demoStories[id as keyof typeof demoStories];
-      setStory(foundStory || null);
+      const foundPaper = demoPapers[id as keyof typeof demoPapers];
+      setPaper(foundPaper || null);
       setLoading(false);
     }, 100);
 
@@ -60,19 +60,19 @@ export default function GuestStoryPage() {
       <div className="min-h-screen bg-academic-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading story...</p>
+          <p className="text-muted-foreground">Loading paper...</p>
         </div>
       </div>
     );
   }
 
-  if (!story) {
+  if (!paper) {
     return (
       <div className="min-h-screen bg-academic-gradient flex items-center justify-center">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-heading mb-4">Story Not Found</h1>
+          <h1 className="text-2xl font-heading mb-4">Paper Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            The story you&apos;re looking for doesn&apos;t exist or is no longer available.
+            The paper you&apos;re looking for doesn&apos;t exist or is no longer available.
           </p>
           <a
             href="/dashboard"
@@ -85,5 +85,5 @@ export default function GuestStoryPage() {
     );
   }
 
-  return <GuestStoryDetails story={story} />;
+  return <GuestStoryDetails story={paper} />;
 }

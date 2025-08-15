@@ -63,14 +63,18 @@ const guestStories: StoryCardDetails[] = [
 
 const guestSharedStories = [
 	{
-					id: "demo-3",
-					title: "Artificial Intelligence in Healthcare: A Comprehensive Analysis",
-					genre: "Academic Essay",
-					author: "Dr. Emma Wilson",
-					sharedAt: "2024-01-12",
-					excerpt:
-						"This paper explores the transformative potential of AI technologies in modern healthcare systems",
-					characters: ["AI Technology", "Healthcare Innovation"],
+    id: "demo-3",
+    title: "Singapore's Technological Innovation Trajectory: 2025-2030 Strategic Positioning",
+    genre: "Research Paper",
+    author: "Dr. Sarah Chen", 
+    sharedAt: "2024-01-12",
+    description: "A comprehensive analysis of Singapore's strategic positioning in technological innovation for the next five years",
+    characters: ["Technological Innovation", "Strategic Positioning", "Singapore", "Technology Policy"],
+    isDemo: true,
+    contentUrl: "/Example_Paper.pdf", // Path to our static PDF content
+    status: "completed" as const,
+    word_count: 8000,
+    chapter_count: 25, // Using as page_count for academic papers
 		isDemo: true,
 	},
 ];

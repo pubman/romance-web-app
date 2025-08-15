@@ -62,7 +62,7 @@ export function BuyCreditsCta({
 								Get More Credits
 							</CardTitle>
 							<p className="text-sm text-muted-foreground mt-1">
-								Unlock unlimited storytelling
+								Unlock unlimited paper writing 
 							</p>
 						</div>
 					</div>

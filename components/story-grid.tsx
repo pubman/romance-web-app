@@ -73,7 +73,7 @@ export function StoryGrid({ stories, showAuthor = false }: StoryGridProps) {
 					)}
 				</div>
 				<h3 className="text-xl font-heading text-foreground mb-2">
-					{showAuthor ? "No shared stories yet" : "No stories yet"}
+					{showAuthor ? "No shared papers yet" : "No papers yet"}
 				</h3>
 				<p className="text-muted-foreground text-center max-w-sm">
 					{showAuthor

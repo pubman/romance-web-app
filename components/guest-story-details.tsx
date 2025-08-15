@@ -69,12 +69,12 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Demo Story - Guest Preview</CardTitle>
+              <CardTitle className="text-lg">Demo Paper - Guest Preview</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              You&apos;re viewing a demo story. Create an account to generate unlimited personalized romantic stories and save them to your library!
+              You&apos;re viewing a demo paper. Create an account to generate unlimited personalized academic papers and save them to your library!
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild>
@@ -124,10 +124,10 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
 
             {story.characters.length > 0 && (
               <div className="mt-3">
-                <span className="text-sm text-muted-foreground mr-2">Characters:</span>
-                {story.characters.map((character, index) => (
+                <span className="text-sm text-muted-foreground mr-2">Topics:</span>
+                {story.characters.map((topic, index) => (
                   <Badge key={index} variant="outline" className="mr-1">
-                    {character}
+                    {topic}
                   </Badge>
                 ))}
               </div>
@@ -135,15 +135,15 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
           </CardHeader>
         </Card>
 
-        {/* Story Content */}
+        {/* Paper Content */}
         <Card className="bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Story PDF
+              Paper PDF
             </CardTitle>
             <CardDescription>
-              Enjoy this sample romance story. Create your account to generate your own personalized stories!
+              Enjoy this sample academic paper. Create your account to generate your own personalized papers!
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -152,7 +152,7 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
                 <div className="flex items-center justify-center py-8 min-h-[600px]">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Loading your story PDF...</p>
+                    <p className="text-muted-foreground">Loading your paper PDF...</p>
                   </div>
                 </div>
               ) : pdfError ? (
@@ -173,18 +173,18 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
                   <iframe
                     src={story.contentUrl}
                     className="h-[600px] w-full rounded-lg border"
-                    title="Sample Romance Story PDF"
+                    title="Sample Academic Paper PDF"
                     onError={() => setPdfError("Failed to display PDF")}
                   />
                   <div className="mt-4 p-3 bg-muted/50 rounded-lg border">
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        <span>Sample Romance Story</span>
+                        <span>Sample Academic Paper</span>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-muted-foreground">
-                          {story.word_count.toLocaleString()} words
+                          {story.word_count.toLocaleString()} words • {story.chapter_count} pages
                         </span>
                         <Button
                           asChild
@@ -193,7 +193,7 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
                         >
                           <a
                             href={story.contentUrl}
-                            download="Emma's Romance.pdf"
+                            download="Singapore_Innovation_Paper.pdf"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -214,10 +214,10 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <Crown className="h-6 w-6 text-primary" />
-              Ready to Create Your Own Story?
+              Ready to Generate Your Own Paper?
             </CardTitle>
             <CardDescription className="text-base">
-              This was just a sample of what Romance by Me can create. Join thousands of writers crafting their perfect romantic tales.
+              This was just a sample of what PaperAI can create. Join thousands of students crafting their perfect academic papers.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -225,12 +225,12 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
               <Button asChild size="lg">
                 <Link href="/auth/sign-up">
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Start Writing Your Story
+                  Start Generating Papers
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <Link href="/create-story">
-                  Try the Story Wizard
+                  Try the Paper Generator
                 </Link>
               </Button>
             </div>

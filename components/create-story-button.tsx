@@ -9,7 +9,7 @@ export function CreateStoryButton() {
     <Link href="/create-story">
       <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
         <Plus className="mr-2 h-4 w-4" />
-        Create New Story
+        Create New Paper 
         <Sparkles className="ml-2 h-4 w-4" />
       </Button>
     </Link>

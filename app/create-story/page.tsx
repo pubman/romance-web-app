@@ -64,13 +64,13 @@ export default function CreateStoryPage() {
 								<div className="flex items-center gap-2">
 									<Crown className="h-5 w-5 text-primary" />
 									<CardTitle className="text-lg">
-										Guest Story Creation
+										Guest Paper Creation
 									</CardTitle>
 								</div>
 							</CardHeader>
 							<CardContent>
 								<p className="text-sm text-muted-foreground mb-4">
-									You&apos;re creating a story as a guest. You have{" "}
+									You&apos;re creating a paper as a guest. You have{" "}
 									{guestSession?.user.creditsRemaining || 0} free credit
 									remaining.
 								</p>
@@ -101,7 +101,7 @@ export default function CreateStoryPage() {
 								<CardContent>
 									<p className="text-sm text-orange-700 dark:text-orange-300 mb-4">
 										You&apos;ve used your free guest credit. Sign up to get more
-										credits and continue creating stories!
+										credits and continue creating papers!
 									</p>
 									<Button asChild>
 										<Link href="/auth/sign-up">
