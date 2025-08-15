@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Loader2, FileText } from "lucide-react";
+import { Sparkles, Loader2, FileText, Crown } from "lucide-react";
+import Link from "next/link";
 import { DatabaseStory } from "@/hooks/use-user-stories";
 
 interface ReviewStepProps {
@@ -18,6 +19,7 @@ interface ReviewStepProps {
 	formattedPrompt: string;
 	onGenerate: () => void;
 	isGenerating: boolean;
+	isGuest: boolean;
 }
 
 export function ReviewStep({
@@ -25,6 +27,7 @@ export function ReviewStep({
 	formattedPrompt,
 	onGenerate,
 	isGenerating,
+	isGuest,
 }: ReviewStepProps) {
 	const getGenreName = (id: string) => {
 		const genres: { [key: string]: string } = {
@@ -269,29 +272,52 @@ export function ReviewStep({
 			</Card>
 
 			<div className="text-center pt-6">
-				<Button
-					onClick={onGenerate}
-					disabled={isGenerating}
-					size="lg"
-					className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
-				>
-					{isGenerating ? (
-						<>
-							<Loader2 className="mr-2 h-5 w-5 animate-spin" />
-							Crafting Your Story...
-						</>
-					) : (
-						<>
-							<Sparkles className="mr-2 h-5 w-5" />
-							Generate My Story
-						</>
-					)}
-				</Button>
+				{isGuest ? (
+					<div className="space-y-4">
+						<div className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg">
+							<Crown className="h-8 w-8 text-primary mx-auto mb-3" />
+							<h3 className="text-lg font-heading mb-2">Ready to Generate Your Story?</h3>
+							<p className="text-muted-foreground text-sm mb-4">
+								Create an account to generate your personalized romance story and save it to your library.
+							</p>
+							<Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8">
+								<Link href="/auth/sign-up">
+									<Crown className="mr-2 h-5 w-5" />
+									Create Account to Generate Story
+								</Link>
+							</Button>
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Your story preferences have been saved and will be ready when you create your account.
+						</p>
+					</div>
+				) : (
+					<>
+						<Button
+							onClick={onGenerate}
+							disabled={isGenerating}
+							size="lg"
+							className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+						>
+							{isGenerating ? (
+								<>
+									<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+									Crafting Your Story...
+								</>
+							) : (
+								<>
+									<Sparkles className="mr-2 h-5 w-5" />
+									Generate My Story
+								</>
+							)}
+						</Button>
 
-				{isGenerating && (
-					<p className="text-sm text-muted-foreground mt-4">
-						Our AI is weaving your romantic tale... This may take a few moments.
-					</p>
+						{isGenerating && (
+							<p className="text-sm text-muted-foreground mt-4">
+								Our AI is weaving your romantic tale... This may take a few moments.
+							</p>
+						)}
+					</>
 				)}
 			</div>
 		</div>

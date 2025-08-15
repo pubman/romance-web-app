@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStoryGeneration } from "@/hooks/use-story-generation";
 import { DatabaseStory } from "@/hooks/use-user-stories";
+import { useGuest } from "@/contexts/guest-context";
 
 import { GenreStep } from "@/components/wizard-steps/genre-step";
 import { CharacterStep } from "@/components/wizard-steps/character-step";
@@ -59,6 +60,7 @@ const steps = [
 export function StoryWizard() {
 	const router = useRouter();
 	const { generateStory, isGenerating, error } = useStoryGeneration();
+	const { isGuest } = useGuest();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [formattedPrompt, setFormattedPrompt] = useState("");
 	const [preferences, setPreferences] = useState<StoryPreferences>({
@@ -262,6 +264,7 @@ export function StoryWizard() {
 						formattedPrompt={formattedPrompt}
 						onGenerate={handleGenerate}
 						isGenerating={isGenerating}
+						isGuest={isGuest}
 					/>
 				);
 			default:
