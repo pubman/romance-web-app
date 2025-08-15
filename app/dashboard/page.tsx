@@ -25,28 +25,28 @@ import { DatabaseProfile } from "@/hooks/use-user-profile";
 
 // Placeholder data for guests
 const guestStories = [
-	{
-		id: "demo-1",
-		title: "Love in the Vineyard",
-		genre: "Contemporary",
-		createdAt: "2024-01-15",
-		excerpt:
-			"Sarah never expected to find love while managing her family's struggling vineyard...",
-		isPublic: false,
-		characters: ["Sarah", "Marco"],
-		isDemo: true,
-	},
-	{
-		id: "demo-2",
-		title: "The Duke's Secret",
-		genre: "Historical",
-		createdAt: "2024-01-10",
-		excerpt:
-			"In Regency London, Lady Catherine discovers that the mysterious Duke harbors a secret that could change everything...",
-		isPublic: true,
-		characters: ["Lady Catherine", "Duke Alexander"],
-		isDemo: true,
-	},
+	// {
+	// 	id: "demo-1",
+	// 	title: "Love in the Vineyard",
+	// 	genre: "Contemporary",
+	// 	createdAt: "2024-01-15",
+	// 	excerpt:
+	// 		"Sarah never expected to find love while managing her family's struggling vineyard...",
+	// 	isPublic: false,
+	// 	characters: ["Sarah", "Marco"],
+	// 	isDemo: true,
+	// },
+	// {
+	// 	id: "demo-2",
+	// 	title: "The Duke's Secret",
+	// 	genre: "Historical",
+	// 	createdAt: "2024-01-10",
+	// 	excerpt:
+	// 		"In Regency London, Lady Catherine discovers that the mysterious Duke harbors a secret that could change everything...",
+	// 	isPublic: true,
+	// 	characters: ["Lady Catherine", "Duke Alexander"],
+	// 	isDemo: true,
+	// },
 ];
 
 const guestSharedStories = [
@@ -57,7 +57,7 @@ const guestSharedStories = [
 		author: "Emma Wilson",
 		sharedAt: "2024-01-12",
 		excerpt:
-			"A chance encounter at the Eiffel Tower leads to an unexpected romance...",
+			"A chance encounter at the Eiffel Tower leads to an unexpected romance between Sophie, an American literature professor, and Jean-Luc, a charming Parisian architect. Their love story unfolds against the magical backdrop of the City of Light.",
 		characters: ["Sophie", "Jean-Luc"],
 		isDemo: true,
 	},

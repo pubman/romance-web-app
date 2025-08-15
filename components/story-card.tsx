@@ -36,6 +36,10 @@ interface StoryCardProps {
 }
 
 export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
+	// Check if this is a demo/guest story
+	const isGuestStory = story.id.startsWith("demo-");
+	const storyRoute = isGuestStory ? `/guest-story/${story.id}` : `/story/${story.id}`;
+	
 	// Extract data from database schema
 	const genre =
 		story.story_preferences?.genre ||
@@ -132,7 +136,7 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem asChild>
-								<Link href={`/story/${story.id}`}>
+								<Link href={storyRoute}>
 									<Eye className="mr-2 h-4 w-4" />
 									View Story
 								</Link>
@@ -224,7 +228,7 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
 							size="sm"
 							className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
 						>
-							<Link href={`/story/${story.id}`}>
+							<Link href={storyRoute}>
 								<Eye className="mr-2 h-4 w-4" />
 								Read Story
 							</Link>
@@ -255,7 +259,7 @@ export function StoryCard({ story, showAuthor = false }: StoryCardProps) {
 							size="sm"
 							className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
 						>
-							<Link href={`/story/${story.id}`}>
+							<Link href={storyRoute}>
 								<Eye className="mr-2 h-4 w-4" />
 								View Draft
 							</Link>
