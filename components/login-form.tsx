@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useGuest } from "@/contexts/guest-context";
-import { UserCheck, Brain } from "lucide-react";
+import { UserCheck } from "lucide-react";
 
 export function LoginForm({
   className,

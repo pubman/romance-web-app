@@ -5,7 +5,7 @@ import { DatabaseStory } from "@/hooks/use-user-stories";
 import { Heart, BookOpen } from "lucide-react";
 
 // Legacy story interface for guest stories
-interface LegacyStory {
+export interface LegacyStory {
 	id: string;
 	title: string;
 	genre: string;

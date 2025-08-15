@@ -293,7 +293,7 @@ export function PaperReviewStep({
 					<ul className="list-disc pl-5 space-y-1">
 						<li>You properly cite all sources and give credit where due</li>
 						<li>You review and verify all generated content for accuracy</li>
-						<li>You follow your institution's academic integrity policies</li>
+						<li>You follow your institution&apos;s academic integrity policies</li>
 						<li>You use this as a starting point and add your own analysis and insights</li>
 					</ul>
 				</CardContent>

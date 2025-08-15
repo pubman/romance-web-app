@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,6 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Wand2, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { StoryPreferences } from "@/components/story-wizard";
 import {
-	generatePromptFromPreferences,
 	formatPromptWithAPI,
 	FormatPromptError,
 } from "@/lib/format-prompt";
@@ -35,19 +34,7 @@ export function OutlineStep({
 		null
 	);
 
-	// Generate initial outline when component mounts or use existing formatted outline
-	useEffect(() => {
-		if (formattedPrompt) {
-			setEditedOutline(formattedPrompt);
-			setIsApproved(true);
-		} else {
-			const outline = generateAcademicOutline(preferences);
-			setGeneratedOutline(outline);
-			setEditedOutline(outline);
-		}
-	}, [preferences, formattedPrompt]);
-
-	const generateAcademicOutline = (prefs: StoryPreferences) => {
+	const generateAcademicOutline = useCallback((prefs: StoryPreferences) => {
 		// Convert story preferences to academic outline
 		const paperType = getPaperTypeName(prefs.genre);
 		const approach = getApproachName(prefs.mood);
@@ -119,7 +106,19 @@ export function OutlineStep({
 		outline += `- Academic Field: ${field}`;
 
 		return outline;
-	};
+	}, []);
+
+	// Generate initial outline when component mounts or use existing formatted outline
+	useEffect(() => {
+		if (formattedPrompt) {
+			setEditedOutline(formattedPrompt);
+			setIsApproved(true);
+		} else {
+			const outline = generateAcademicOutline(preferences);
+			setGeneratedOutline(outline);
+			setEditedOutline(outline);
+		}
+	}, [preferences, formattedPrompt, generateAcademicOutline]);
 
 	const getPaperTypeName = (id: string) => {
 		const types: { [key: string]: string } = {

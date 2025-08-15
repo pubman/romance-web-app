@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LogoutButton } from "@/components/logout-button";
-import { User, Brain, Settings, Heart } from "lucide-react";
+import { User, Brain, Settings } from "lucide-react";
 import Link from "next/link";
 
 export function DashboardHeader() {

@@ -20,11 +20,17 @@ export interface DatabaseStory {
       heat_level?: string;
       story_length?: string;
       conflict_type?: string;
+      source_count?: string;
+      academic_tone?: string;
     };
     setting?: {
       time_period?: string;
       location?: string;
       atmosphere?: string;
+      course_name?: string;
+      professor?: string;
+      special_requirements?: string;
+      methodology?: string;
     };
     characters?: {
       protagonist?: { name: string; traits?: string[]; occupation?: string };
@@ -42,6 +48,10 @@ export interface DatabaseStory {
       time_period?: string;
       location?: string;
       atmosphere?: string;
+      course_name?: string;
+      professor?: string;
+      special_requirements?: string;
+      methodology?: string;
     };
     elements?: {
       genre?: string;
@@ -49,6 +59,8 @@ export interface DatabaseStory {
       heat_level?: string;
       story_length?: string;
       conflict_type?: string;
+      source_count?: string;
+      academic_tone?: string;
     };
     mood?: string;
   } | null;

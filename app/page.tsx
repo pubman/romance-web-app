@@ -3,9 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Zap, FileText, BarChart3, Clock, ImageIcon, Users, Star, ArrowRight } from "lucide-react";
+import { Brain, FileText, BarChart3, Clock, ImageIcon, Users, Star, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -185,7 +184,7 @@ export default async function Home() {
                   ))}
                 </div>
                 <p className="font-manrope text-muted-foreground mb-4">
-                  "Saved me hours on my final research paper. The charts it generated were actually better than what I could make myself."
+                  &quot;Saved me hours on my final research paper. The charts it generated were actually better than what I could make myself.&quot;
                 </p>
                 <div className="font-manrope font-medium">Sarah M.</div>
                 <div className="text-sm text-muted-foreground">Psychology Major, UCLA</div>
@@ -200,7 +199,7 @@ export default async function Home() {
                   ))}
                 </div>
                 <p className="font-manrope text-muted-foreground mb-4">
-                  "I was skeptical at first, but the quality is much better. The structure and citations are spot-on."
+                  &quot;I was skeptical at first, but the quality is much better. The structure and citations are spot-on.&quot;
                 </p>
                 <div className="font-manrope font-medium">Marcus T.</div>
                 <div className="text-sm text-muted-foreground">Business Student, NYU</div>
@@ -215,7 +214,7 @@ export default async function Home() {
                   ))}
                 </div>
                 <p className="font-manrope text-muted-foreground mb-4">
-                  "The AI-generated diagrams and data visualizations are incredible. Professors love them."
+                  &quot;The AI-generated diagrams and data visualizations are incredible. Professors love them.&quot;
                 </p>
                 <div className="font-manrope font-medium">Alex K.</div>
                 <div className="text-sm text-muted-foreground">Engineering Student, MIT</div>
@@ -230,7 +229,7 @@ export default async function Home() {
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Writing?</h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of students who've revolutionized their academic success
+            Join thousands of students who&apos;ve revolutionized their academic success
           </p>
           <Link href="/auth/sign-up">
             <Button size="lg" variant="secondary" className="font-manrope text-lg px-8">

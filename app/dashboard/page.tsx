@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { DashboardHeader } from "@/components/dashboard-header";
-import { StoryGrid } from "@/components/story-grid";
+import { StoryGrid, LegacyStory } from "@/components/story-grid";
 import { CreateStoryButton } from "@/components/create-story-button";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useUserStories } from "@/hooks/use-user-stories";
 import {
-	Heart,
 	BookOpen,
 	Users,
 	Crown,
@@ -24,19 +23,8 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { DatabaseProfile } from "@/hooks/use-user-profile";
 
-type StoryCardDetails = {
-	id: string
-	title: string
-	genre: string 
-	createdAt: string 
-	excerpt: string 
-	isPublic: boolean 
-	characters: string[]
-	isDemo: boolean
-}
-
 // Placeholder data for guests
-const guestStories: StoryCardDetails[] = [
+const guestStories: LegacyStory[] = [
 	// {
 	// 	id: "demo-1",
 	// 	title: "The Impact of Social Media on Modern Communication",
@@ -61,21 +49,16 @@ const guestStories: StoryCardDetails[] = [
 	// },
 ];
 
-const guestSharedStories = [
+const guestSharedStories: LegacyStory[] = [
 	{
     id: "demo-3",
     title: "Singapore's Technological Innovation Trajectory: 2025-2030 Strategic Positioning",
     genre: "Research Paper",
     author: "Dr. Sarah Chen", 
     sharedAt: "2024-01-12",
-    description: "A comprehensive analysis of Singapore's strategic positioning in technological innovation for the next five years",
+    excerpt: "A comprehensive analysis of Singapore's strategic positioning in technological innovation for the next five years",
     characters: ["Technological Innovation", "Strategic Positioning", "Singapore", "Technology Policy"],
     isDemo: true,
-    contentUrl: "/Example_Paper.pdf", // Path to our static PDF content
-    status: "completed" as const,
-    word_count: 8000,
-    chapter_count: 25, // Using as page_count for academic papers
-		isDemo: true,
 	},
 ];
 
