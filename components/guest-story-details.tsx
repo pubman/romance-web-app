@@ -74,7 +74,7 @@ export function GuestStoryDetails({ story }: GuestStoryDetailsProps) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              You're viewing a demo story. Create an account to generate unlimited personalized romantic stories and save them to your library!
+              You&apos;re viewing a demo story. Create an account to generate unlimited personalized romantic stories and save them to your library!
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild>

@@ -57,7 +57,8 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/login") &&
     !request.nextUrl.pathname.startsWith("/auth") &&
     !request.nextUrl.pathname.startsWith("/pricing") &&
-    !request.nextUrl.pathname.startsWith("/payment-success")
+    !request.nextUrl.pathname.startsWith("/payment-success") &&
+    !request.nextUrl.pathname.startsWith("/guest-story")
   ) {
     // no user or guest session, redirect to login page
     const url = request.nextUrl.clone();

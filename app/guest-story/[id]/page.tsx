@@ -22,14 +22,26 @@ const demoStories = {
   }
 };
 
-interface GuestStoryPageProps {
-  params: { id: string };
-}
+
+type DemoStory = {
+  id: string;
+  title: string;
+  genre: string;
+  author: string;
+  sharedAt: string;
+  description: string;
+  characters: string[];
+  isDemo: boolean;
+  contentUrl: string;
+  status: "completed";
+  word_count: number;
+  chapter_count: number;
+};
 
 export default function GuestStoryPage() {
   const params = useParams();
   const id = params?.id as string;
-  const [story, setStory] = useState(null);
+  const [story, setStory] = useState<DemoStory | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,7 +72,7 @@ export default function GuestStoryPage() {
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-heading mb-4">Story Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            The story you're looking for doesn't exist or is no longer available.
+            The story you&apos;re looking for doesn&apos;t exist or is no longer available.
           </p>
           <a
             href="/dashboard"

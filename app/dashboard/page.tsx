@@ -23,8 +23,19 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { DatabaseProfile } from "@/hooks/use-user-profile";
 
+type StoryCardDetails = {
+	id: string
+	title: string
+	genre: string 
+	createdAt: string 
+	excerpt: string 
+	isPublic: boolean 
+	characters: string[]
+	isDemo: boolean
+}
+
 // Placeholder data for guests
-const guestStories = [
+const guestStories: StoryCardDetails[] = [
 	// {
 	// 	id: "demo-1",
 	// 	title: "Love in the Vineyard",
@@ -51,7 +62,7 @@ const guestStories = [
 
 const guestSharedStories = [
 	{
-					id: "3",
+					id: "demo-3",
 					title: "Blueprint for a Kisses",
 					genre: "Contemporary",
 					author: "Emma Wilson",
@@ -140,7 +151,7 @@ export default function DashboardPage() {
 	const sharedStories = isAuthenticated
 		? [
 				{
-					id: "3",
+					id: "demo-3",
 					title: "Blueprint for a Kisses",
 					genre: "Contemporary",
 					author: "Emma Wilson",
@@ -219,7 +230,7 @@ export default function DashboardPage() {
 										{creditsRemaining} credit remaining
 									</p>
 									<p className="text-sm text-muted-foreground">
-										Try creating your first story for free!
+								Sign up to create your first story for free!
 									</p>
 								</div>
 							</div>
