@@ -17,44 +17,44 @@ import { useStoryGeneration } from "@/hooks/use-story-generation";
 import { DatabaseStory } from "@/hooks/use-user-stories";
 import { useGuest } from "@/contexts/guest-context";
 
-import { GenreStep } from "@/components/wizard-steps/genre-step";
-import { CharacterStep } from "@/components/wizard-steps/character-step";
-import { SettingStep } from "@/components/wizard-steps/setting-step";
-import { ElementsStep } from "@/components/wizard-steps/elements-step";
-import { ReviewStep } from "@/components/wizard-steps/review-step";
-import { PromptStep } from "@/components/wizard-steps/prompt-step";
+import { PaperTypeStep } from "@/components/wizard-steps/paper-type-step";
+import { ResearchFocusStep } from "@/components/wizard-steps/research-focus-step";
+import { AcademicContextStep } from "@/components/wizard-steps/academic-context-step";
+import { PaperSpecsStep } from "@/components/wizard-steps/paper-specs-step";
+import { PaperReviewStep } from "@/components/wizard-steps/paper-review-step";
+import { OutlineStep } from "@/components/wizard-steps/outline-step";
 
 export interface StoryPreferences {
-	genre: string;
-	mood: string;
+	genre: string; // Paper type
+	mood: string; // Academic approach
 	characters: {
-		protagonist: { name: string; traits: string[]; occupation: string };
-		love_interest: { name: string; traits: string[]; occupation: string };
+		protagonist: { name: string; traits: string[]; occupation: string }; // Primary research topic
+		love_interest: { name: string; traits: string[]; occupation: string }; // Secondary research topic
 	};
 	setting: {
-		time_period: string;
-		location: string;
-		atmosphere: string;
+		time_period: string; // Academic level
+		location: string; // Institution
+		atmosphere: string; // Timeline constraint
 	};
 	elements: {
-		tropes: string[];
-		heat_level: string;
-		story_length: string;
-		conflict_type: string;
+		tropes: string[]; // Research methods
+		heat_level: string; // Academic rigor
+		story_length: string; // Paper length
+		conflict_type: string; // Citation style
 	};
 }
 
 const steps = [
-	{ id: 1, title: "Genre & Mood", description: "Choose your story's style" },
-	{ id: 2, title: "Characters", description: "Create your protagonists" },
-	{ id: 3, title: "Setting", description: "Set the scene" },
-	{ id: 4, title: "Story Elements", description: "Add romantic elements" },
+	{ id: 1, title: "Paper Type", description: "Choose your paper type and approach" },
+	{ id: 2, title: "Research Focus", description: "Define your research topics" },
+	{ id: 3, title: "Academic Context", description: "Set academic level and context" },
+	{ id: 4, title: "Paper Specs", description: "Define paper specifications" },
 	{
 		id: 5,
 		title: "Outline",
-		description: "Format and approve your story outline",
+		description: "Review and approve your paper outline",
 	},
-	{ id: 6, title: "Review", description: "Final review and generate story" },
+	{ id: 6, title: "Review", description: "Final review and generate paper" },
 ];
 
 export function StoryWizard() {
@@ -85,36 +85,36 @@ export function StoryWizard() {
 
 	const fillTestData = () => {
 		const testPreferences: StoryPreferences = {
-			genre: "contemporary",
-			mood: "passionate",
+			genre: "research_paper",
+			mood: "analytical",
 			characters: {
 				protagonist: {
-					name: "Emma",
-					traits: ["Independent", "Witty", "Ambitious"],
-					occupation: "Architect",
+					name: "The Impact of Social Media on Mental Health",
+					traits: ["Social Media", "Psychology", "Mental Health", "Technology"],
+					occupation: "Psychology",
 				},
 				love_interest: {
-					name: "James",
-					traits: ["Protective", "Charming", "Mysterious"],
-					occupation: "Detective",
+					name: "Digital Wellness Strategies",
+					traits: ["Wellness", "Digital Health", "Intervention"],
+					occupation: "Health Sciences",
 				},
 			},
 			setting: {
-				time_period: "modern",
-				location: "New York City",
-				atmosphere: "urban",
+				time_period: "undergraduate",
+				location: "University",
+				atmosphere: "standard",
 			},
 			elements: {
-				tropes: ["Enemies to Lovers", "Workplace Romance", "Grumpy/Sunshine"],
-				heat_level: "warm",
-				story_length: "novella",
-				conflict_type: "both",
+				tropes: ["Literature Review", "Survey Research", "Statistical Analysis"],
+				heat_level: "intermediate",
+				story_length: "medium",
+				conflict_type: "apa",
 			},
 		};
 
 		setPreferences(testPreferences);
 		setFormattedPrompt(
-			"Emma, an ambitious architect, finds herself working alongside the mysterious detective James on a case involving her latest building project. Their initial clash turns into undeniable chemistry as they navigate external threats and internal conflicts in the heart of New York City."
+			"# Research Paper: The Impact of Social Media on Mental Health\n\n## Abstract\nAn analytical examination of the impact of social media on mental health within the context of Psychology. This paper explores the relationship between social media usage and digital wellness strategies. The research employs literature review and survey research methodologies to provide comprehensive insights.\n\n## Introduction\n- Background and context of social media impact on mental health\n- Problem statement and research questions\n- Thesis statement\n- Significance of the study"
 		);
 		setCurrentStep(6); // Jump to review step
 	};
@@ -205,16 +205,15 @@ export function StoryWizard() {
 			case 1:
 				return preferences.genre && preferences.mood;
 			case 2:
-				return (
-					preferences.characters.protagonist.name &&
-					preferences.characters.love_interest.name
-				);
+				return preferences.characters.protagonist.name; // Only primary topic required
 			case 3:
 				return preferences.setting.time_period && preferences.setting.location;
 			case 4:
 				return (
 					preferences.elements.tropes.length > 0 &&
-					preferences.elements.heat_level
+					preferences.elements.heat_level &&
+					preferences.elements.story_length &&
+					preferences.elements.conflict_type
 				);
 			case 5:
 				return formattedPrompt.trim().length > 0;
@@ -229,29 +228,29 @@ export function StoryWizard() {
 		switch (currentStep) {
 			case 1:
 				return (
-					<GenreStep preferences={preferences} onUpdate={updatePreferences} />
+					<PaperTypeStep preferences={preferences} onUpdate={updatePreferences} />
 				);
 			case 2:
 				return (
-					<CharacterStep
+					<ResearchFocusStep
 						preferences={preferences}
 						onUpdate={updatePreferences}
 					/>
 				);
 			case 3:
 				return (
-					<SettingStep preferences={preferences} onUpdate={updatePreferences} />
+					<AcademicContextStep preferences={preferences} onUpdate={updatePreferences} />
 				);
 			case 4:
 				return (
-					<ElementsStep
+					<PaperSpecsStep
 						preferences={preferences}
 						onUpdate={updatePreferences}
 					/>
 				);
 			case 5:
 				return (
-					<PromptStep
+					<OutlineStep
 						preferences={preferences}
 						onPromptApproval={handlePromptApproval}
 						formattedPrompt={formattedPrompt}
@@ -259,7 +258,7 @@ export function StoryWizard() {
 				);
 			case 6:
 				return (
-					<ReviewStep
+					<PaperReviewStep
 						preferences={preferences}
 						formattedPrompt={formattedPrompt}
 						onGenerate={handleGenerate}
@@ -289,10 +288,10 @@ export function StoryWizard() {
 					<div className="flex items-center justify-between mb-4">
 						<div>
 							<CardTitle className="text-3xl font-heading">
-								Create Your Story
+								Generate Your Paper
 							</CardTitle>
 							<CardDescription className="text-lg mt-2">
-								Let&apos;s craft your perfect romance tale together
+								Let&apos;s create your perfect academic paper together
 							</CardDescription>
 						</div>
 						<div className="text-right">

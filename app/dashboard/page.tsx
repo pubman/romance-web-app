@@ -14,6 +14,7 @@ import {
 	Crown,
 	RefreshCw,
 	AlertCircle,
+	FileText,
 } from "lucide-react";
 import { BuyCreditsCta } from "@/components/buy-credits-cta";
 import { useGuest } from "@/contexts/guest-context";
@@ -38,24 +39,24 @@ type StoryCardDetails = {
 const guestStories: StoryCardDetails[] = [
 	// {
 	// 	id: "demo-1",
-	// 	title: "Love in the Vineyard",
-	// 	genre: "Contemporary",
+	// 	title: "The Impact of Social Media on Modern Communication",
+	// 	genre: "Research Paper",
 	// 	createdAt: "2024-01-15",
 	// 	excerpt:
-	// 		"Sarah never expected to find love while managing her family's struggling vineyard...",
+	// 		"This comprehensive analysis examines how social media platforms have fundamentally transformed interpersonal communication patterns...",
 	// 	isPublic: false,
-	// 	characters: ["Sarah", "Marco"],
+	// 	characters: ["Social Media", "Communication Theory"],
 	// 	isDemo: true,
 	// },
 	// {
 	// 	id: "demo-2",
-	// 	title: "The Duke's Secret",
-	// 	genre: "Historical",
+	// 	title: "Climate Change Effects on Global Agriculture",
+	// 	genre: "Research Report",
 	// 	createdAt: "2024-01-10",
 	// 	excerpt:
-	// 		"In Regency London, Lady Catherine discovers that the mysterious Duke harbors a secret that could change everything...",
+	// 		"An in-depth study of how rising global temperatures and changing precipitation patterns are affecting crop yields worldwide...",
 	// 	isPublic: true,
-	// 	characters: ["Lady Catherine", "Duke Alexander"],
+	// 	characters: ["Climate Data", "Agricultural Statistics"],
 	// 	isDemo: true,
 	// },
 ];
@@ -63,13 +64,13 @@ const guestStories: StoryCardDetails[] = [
 const guestSharedStories = [
 	{
 					id: "demo-3",
-					title: "Blueprint for a Kisses",
-					genre: "Contemporary",
-					author: "Emma Wilson",
+					title: "Artificial Intelligence in Healthcare: A Comprehensive Analysis",
+					genre: "Academic Essay",
+					author: "Dr. Emma Wilson",
 					sharedAt: "2024-01-12",
 					excerpt:
-						"A chance encounter for architect Emma leads to a deeper romance",
-					characters: ["Emma", "James"],
+						"This paper explores the transformative potential of AI technologies in modern healthcare systems",
+					characters: ["AI Technology", "Healthcare Innovation"],
 		isDemo: true,
 	},
 ];
@@ -152,13 +153,13 @@ export default function DashboardPage() {
 		? [
 				{
 					id: "demo-3",
-					title: "Blueprint for a Kisses",
-					genre: "Contemporary",
-					author: "Emma Wilson",
+					title: "Artificial Intelligence in Healthcare: A Comprehensive Analysis",
+					genre: "Academic Essay",
+					author: "Dr. Emma Wilson",
 					sharedAt: "2024-01-12",
 					excerpt:
-						"A chance encounter for architect Emma leads to a deeper romance",
-					characters: ["Emma", "James"],
+						"This paper explores the transformative potential of AI technologies in modern healthcare systems",
+					characters: ["AI Technology", "Healthcare Innovation"],
 				},
 		  ]
 		: guestSharedStories;
@@ -168,8 +169,8 @@ export default function DashboardPage() {
 		: guestSession?.user.creditsRemaining || 0;
 
 	const displayName = isAuthenticated
-		? profile?.display_name || "Writer"
-		: guestSession?.user.displayName || "Guest Writer";
+		? profile?.display_name || "User"
+		: guestSession?.user.displayName || "Guest User";
 
 	return (
 		<div className="min-h-screen bg-academic-gradient">
@@ -182,14 +183,14 @@ export default function DashboardPage() {
 							<div className="flex items-center gap-2">
 								<Crown className="h-5 w-5 text-primary" />
 								<CardTitle className="text-lg">
-									Welcome, Guest Writer!
+									Welcome, Guest User!
 								</CardTitle>
 							</div>
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-muted-foreground mb-4">
-								You&apos;re experiencing Romance by Me in guest mode. Sign up to
-								save your stories, get more credits, and unlock all features!
+								You&apos;re experiencing PaperAI in guest mode. Sign up to
+								save your papers, get more credits, and unlock all features!
 							</p>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<Button asChild>
@@ -211,7 +212,7 @@ export default function DashboardPage() {
 						Welcome back, {displayName}
 					</h1>
 					<p className="text-muted-foreground text-lg">
-						Ready to craft your next romantic tale?
+						Ready to generate your next academic paper?
 					</p>
 				</div>
 
@@ -230,7 +231,7 @@ export default function DashboardPage() {
 										{creditsRemaining} credit remaining
 									</p>
 									<p className="text-sm text-muted-foreground">
-								Sign up to create your first story for free!
+								Sign up to generate your first paper for free!
 									</p>
 								</div>
 							</div>
@@ -249,13 +250,13 @@ export default function DashboardPage() {
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 					<div className="bg-card/60 backdrop-blur-sm rounded-lg p-6 border">
 						<div className="flex items-center gap-3 mb-2">
-							<Heart className="h-5 w-5 text-primary" />
-							<h3 className="font-semibold">Your Stories</h3>
+							<FileText className="h-5 w-5 text-primary" />
+							<h3 className="font-semibold">Your Papers</h3>
 						</div>
 						<p className="text-2xl font-heading text-primary">
 							{isAuthenticated ? userStories.length : guestStories.length}
 						</p>
-						<p className="text-sm text-muted-foreground">Stories created</p>
+						<p className="text-sm text-muted-foreground">Papers generated</p>
 					</div>
 
 					<div className="bg-card/60 backdrop-blur-sm rounded-lg p-6 border">
@@ -267,7 +268,7 @@ export default function DashboardPage() {
 							{sharedStories.length}
 						</p>
 						<p className="text-sm text-muted-foreground">
-							Stories shared with you
+							Papers shared with you
 						</p>
 					</div>
 
@@ -279,7 +280,7 @@ export default function DashboardPage() {
 						<p className="text-2xl font-heading text-primary">
 							{isAuthenticated ? readingProgress.length : 0}
 						</p>
-						<p className="text-sm text-muted-foreground">Stories in progress</p>
+						<p className="text-sm text-muted-foreground">Papers in progress</p>
 					</div>
 				</div>
 
@@ -293,7 +294,7 @@ export default function DashboardPage() {
 				</div> */}
 
 				<div className="flex items-center justify-between mb-6">
-					<h2 className="text-2xl font-heading">Your Stories</h2>
+					<h2 className="text-2xl font-heading">Your Papers</h2>
 					<div className="flex items-center gap-2">
 						{isAuthenticated && (
 							<Button onClick={refetchStories} variant="ghost" size="sm">
@@ -338,7 +339,7 @@ export default function DashboardPage() {
 						<CardHeader className="text-center">
 							<CardTitle className="text-lg flex items-center justify-center gap-2 text-destructive">
 								<AlertCircle className="h-5 w-5" />
-								Error Loading Stories
+								Error Loading Papers
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="text-center space-y-4">
@@ -359,7 +360,7 @@ export default function DashboardPage() {
 				{sharedStories.length > 0 && (
 					<>
 						<div className="flex items-center justify-between mb-6 mt-12">
-							<h2 className="text-2xl font-heading">Shared with You</h2>
+							<h2 className="text-2xl font-heading">Papers Shared with You</h2>
 						</div>
 						<StoryGrid stories={sharedStories} showAuthor={true} />
 					</>

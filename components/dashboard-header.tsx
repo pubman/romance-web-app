@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LogoutButton } from "@/components/logout-button";
-import { User, Settings, Heart } from "lucide-react";
+import { User, Brain, Settings, Heart } from "lucide-react";
 import Link from "next/link";
 
 export function DashboardHeader() {
@@ -19,8 +19,12 @@ export function DashboardHeader() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Heart className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-heading text-primary">RomanceByMe</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Brain className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-xl">PaperAI</span>
+          </div>
           </Link>
           
           <div className="flex items-center gap-4">

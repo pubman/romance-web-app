@@ -12,8 +12,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        serif: ["var(--font-playfair)", "Georgia", "serif"],
-        heading: ["var(--font-playfair)", "Georgia", "serif"],
+        serif: ["var(--font-poppins)", "Georgia", "serif"],
+        heading: ["var(--font-poppins)", "system-ui", "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

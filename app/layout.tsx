@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { GuestProvider } from "@/contexts/guest-context";
 import { Toaster } from "@/components/ui/sonner";
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   description: "Create your perfect romantic story",
 };
 
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair",
+const poppins = Poppins({
+  variable: "--font-poppins",
   display: "swap",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfairDisplay.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
